@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AED Marcenaria - Logística & Prospecção</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Ícones -->
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Mapa (Leaflet) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- SheetJS para Importar/Exportar Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <!-- Firebase v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .hidden-view { display: none !important; }
+        #map-rastreio, #map-rota { height: 100%; min-height: 400px; border-radius: 0.75rem; z-index: 10; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Loader */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #dc2626; /* Vermelho AED */
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="text-slate-800 flex h-screen overflow-hidden">
+
+    <!-- ================= TELA DE LOGIN ================= -->
+    <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center border-t-8 border-red-600">
+            <!-- Logo AED Simulado -->
+            <div class="w-20 h-20 mx-auto border-4 border-red-600 rounded-full flex items-center justify-center mb-3 shadow-lg">
+                <span class="text-4xl font-black text-red-600 italic">AD</span>
+            </div>
+            
+            <h1 class="text-2xl font-black text-slate-800 mb-1">AED MARCENARIA</h1>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Logística & IA</p>
+            
+            <form id="login-form" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">E-mail</label>
+                    <input type="email" id="login-email" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Senha</label>
+                    <input type="password" id="login-pass" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2">
+                    <i class='bx bx-log-in-circle text-xl'></i> Entrar no Sistema
+                </button>
+                <p id="login-error" class="text-red-500 text-xs text-center font-bold h-4"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= SISTEMA PRINCIPAL ================= -->
+    <div id="app-view" class="hidden-view flex w-full h-full">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-slate-900 text-white flex flex-col transition-all duration-300 z-40">
+            <div class="p-6 flex items-center gap-3 border-b border-slate-800">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center font-black text-red-600 text-xl italic">AD</div>
+                <div>
+                    <h2 class="font-black text-lg leading-none tracking-wide">AED</h2>
+                    <p class="text-[10px] font-bold text-red-400 uppercase tracking-widest">Marcenaria</p>
+                </div>
+            </div>
+
+            <nav class="flex-grow p-4 space-y-2 overflow-y-auto">
+                <button onclick="nav('dashboard')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" data-target="dashboard">
+                    <i class='bx bxs-dashboard text-xl'></i> <span class="font-semibold text-sm">Dashboard</span>
+                </button>
+                <button onclick="nav('clientes')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" data-target="clientes">
+                    <i class='bx bxs-group text-xl'></i> <span class="font-semibold text-sm">Clientes CRM</span>
+                </button>
+                <button onclick="nav('equipe')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" data-target="equipe">
+                    <i class='bx bxs-id-card text-xl'></i> <span class="font-semibold text-sm">Equipe & RH</span>
+                </button>
+                <button onclick="nav('frota')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" data-target="frota">
+                    <i class='bx bxs-truck text-xl'></i> <span class="font-semibold text-sm">Frota de Veículos</span>
+                </button>
+                <button onclick="nav('rastreio')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" data-target="rastreio">
+                    <i class='bx bx-map-pin text-xl'></i> <span class="font-semibold text-sm">Rastreamento</span>
+                </button>
+                <button onclick="nav('prospeccao')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 font-bold transition-colors" data-target="prospeccao">
+                    <i class='bx bx-radar text-xl'></i> <span class="text-sm">Prospecção IA</span>
+                </button>
+                <div class="border-t border-slate-800 my-4"></div>
+                <button onclick="nav('config')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors" data-target="config">
+                    <i class='bx bxs-cog text-xl'></i> <span class="font-semibold text-sm">Configurações</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-slate-800">
+                <button id="btn-logout" class="w-full flex items-center justify-center gap-2 p-2 rounded-lg text-red-400 hover:bg-red-400/10 transition-colors font-bold text-sm">
+                    <i class='bx bx-log-out'></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-grow flex flex-col h-full overflow-hidden bg-slate-50 relative">
+            
+            <!-- Header Mobile/Contexto -->
+            <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center z-10 border-b border-slate-200">
+                <h2 id="page-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center font-bold">
+                        <i class='bx bxs-user'></i>
+                    </div>
+                    <span id="user-display" class="text-sm font-semibold text-slate-600 hidden sm:block">Gestor</span>
+                </div>
+            </header>
+
+            <!-- VIEWS -->
+            <div class="flex-grow overflow-y-auto p-6 relative">
+
+                <!-- 1. DASHBOARD -->
+                <div id="view-dashboard" class="view-content">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-red-600">
+                            <p class="text-xs text-slate-500 font-bold uppercase">Total Clientes (Lojas)</p>
+                            <h3 class="text-2xl font-black text-slate-800" id="dash-clientes">0</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-slate-800">
+                            <p class="text-xs text-slate-500 font-bold uppercase">Veículos Frota</p>
+                            <h3 class="text-2xl font-black text-slate-800" id="dash-frota">0</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500">
+                            <p class="text-xs text-slate-500 font-bold uppercase">Motoristas/Montadores</p>
+                            <h3 class="text-2xl font-black text-slate-800" id="dash-motoristas">0</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-green-600">
+                            <p class="text-xs text-slate-500 font-bold uppercase">Entregas Hoje</p>
+                            <h3 class="text-2xl font-black text-slate-800">1</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center py-12 relative overflow-hidden">
+                        <i class='bx bx-cube-alt text-6xl text-red-100 mb-4'></i>
+                        <h3 class="text-xl font-black text-slate-800 tracking-tight">AED Marcenaria</h3>
+                        <p class="text-slate-500 text-sm mt-1 font-medium">Especializados em Franquias | Fornecedor Homologado ABF</p>
+                    </div>
+                </div>
+
+                <!-- 2. CLIENTES -->
+                <div id="view-clientes" class="view-content hidden-view space-y-4">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex gap-2">
+                            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
+                                <i class='bx bx-import'></i> Importar Excel
+                            </button>
+                            <input type="file" id="file-upload" class="hidden" accept=".xlsx, .xls, .csv" onchange="importarExcel(event)">
+                            <button onclick="exportarExcel()" class="border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2">
+                                <i class='bx bx-export'></i> Exportar Base
+                            </button>
+                        </div>
+                        <button onclick="abrirModal('modal-cliente')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
+                            <i class='bx bx-plus'></i> Nova Loja/Cliente
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-xs">
+                                <tr>
+                                    <th class="p-4">Franquia / Loja</th>
+                                    <th class="p-4">Telefone</th>
+                                    <th class="p-4">Cidade/UF</th>
+                                    <th class="p-4 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-clientes" class="divide-y divide-slate-100">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3. EQUIPE -->
+                <div id="view-equipe" class="view-content hidden-view space-y-4">
+                    <div class="flex justify-end">
+                        <button onclick="abrirModal('modal-equipe')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
+                            <i class='bx bx-plus'></i> Novo Funcionário
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="lista-equipe">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+
+                <!-- 4. FROTA -->
+                <div id="view-frota" class="view-content hidden-view space-y-4">
+                    <div class="flex justify-end">
+                        <button onclick="abrirModal('modal-frota')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
+                            <i class='bx bx-plus'></i> Novo Veículo
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="lista-frota">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+
+                <!-- 5. RASTREIO NO MAPA -->
+                <div id="view-rastreio" class="view-content hidden-view h-full flex flex-col">
+                    <div class="bg-slate-900 text-white p-3 rounded-t-xl font-bold flex justify-between items-center">
+                        <span class="flex items-center gap-2"><i class='bx bx-satellite text-red-500'></i> GPS da Logística AED</span>
+                        <span class="text-xs bg-green-500 px-2 py-1 rounded text-white animate-pulse">Sinal Ativo</span>
+                    </div>
+                    <div class="flex-grow bg-white border-x border-b border-slate-300 rounded-b-xl relative p-1">
+                        <div id="map-rastreio"></div>
+                    </div>
+                </div>
+
+                <!-- 6. PROSPECÇÃO IA -->
+                <div id="view-prospeccao" class="view-content hidden-view h-full flex flex-col gap-4">
+                    <div class="flex flex-col lg:flex-row gap-4 h-full">
+                        <!-- Painel Busca Rota -->
+                        <div class="w-full lg:w-7/12 flex flex-col gap-4 h-full">
+                            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex-shrink-0">
+                                <h3 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class='bx bx-trip text-lg text-red-600'></i> Rota de Montagem/Entrega</h3>
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <input type="text" id="origem-rota" placeholder="Origem (Ex: São José do Rio Preto, SP)" class="w-full p-2 bg-slate-50 border rounded text-sm outline-none focus:ring-1 focus:ring-red-500">
+                                    <input type="text" id="destino-rota" placeholder="Destino (Ex: Alto Rio Doce, MG)" class="w-full p-2 bg-slate-50 border rounded text-sm outline-none focus:ring-1 focus:ring-red-500">
+                                </div>
+                                <button id="btn-analisar-rota" class="w-full bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-lg font-bold shadow-md transition flex justify-center items-center gap-2">
+                                    <i class='bx bx-radar text-amber-500'></i> Mapear Lojas da Franquia na Rota
+                                </button>
+                            </div>
+                            <!-- Mapa Prospecção -->
+                            <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 flex-grow relative min-h-[300px]">
+                                <div id="map-rota"></div>
+                            </div>
+                        </div>
+
+                        <!-- Lista Lojas Prospecção -->
+                        <div class="w-full lg:w-5/12 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-full">
+                            <div class="p-3 bg-slate-50 border-b border-slate-200">
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class='bx bxs-store text-red-600'></i> Oportunidades Identificadas</h3>
+                            </div>
+                            <div id="lista-prospeccao" class="p-3 flex-grow overflow-y-auto space-y-3">
+                                <div class="text-center py-10 text-slate-400">
+                                    <i class='bx bx-search-alt text-4xl mb-2'></i>
+                                    <p class="text-sm">Analise a rota para pescar lojas no caminho.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. CONFIGURAÇÕES (Chaves de API) -->
+                <div id="view-config" class="view-content hidden-view">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 max-w-xl">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class='bx bx-key text-amber-500'></i> Integração Google Gemini (IA)</h3>
+                        <p class="text-xs text-slate-500 mb-4">Insira a chave do Google Gemini aqui. Ela será salva de forma segura no seu banco de dados e será usada para o cérebro da prospecção de vendas da AED Marcenaria.</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">API Key</label>
+                                <input type="password" id="gemini-key" placeholder="AIzaSy..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-500 outline-none font-mono">
+                            </div>
+                            <button onclick="salvarConfig()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-md w-full">
+                                Salvar Chave IA
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= MODAIS CRUD ================= -->
+    <!-- Modal Cliente -->
+    <div id="modal-cliente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div class="p-4 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-lg text-slate-800">Cadastrar Franquia/Loja</h3>
+                <button onclick="fecharModal('modal-cliente')" class="text-slate-400 hover:text-red-500"><i class='bx bx-x text-2xl'></i></button>
+            </div>
+            <form id="form-cliente" class="p-6 space-y-4">
+                <input type="text" id="cli-nome" placeholder="Nome da Loja (Ex: Mercadão dos Óculos - Centro)" required class="w-full p-2.5 border rounded-lg text-sm bg-slate-50">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="cli-tel" placeholder="WhatsApp (DDD+Número)" required class="w-full p-2.5 border rounded-lg text-sm bg-slate-50">
+                    <input type="text" id="cli-cidade" placeholder="Cidade - UF" required class="w-full p-2.5 border rounded-lg text-sm bg-slate-50">
+                </div>
+                <textarea id="cli-end" placeholder="Endereço Completo" rows="2" class="w-full p-2.5 border rounded-lg text-sm bg-slate-50 resize-none"></textarea>
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold transition">Salvar Cliente</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Equipe -->
+    <div id="modal-equipe" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="p-4 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-lg text-slate-800">Cadastrar Funcionário</h3>
+                <button onclick="fecharModal('modal-equipe')" class="text-slate-400 hover:text-red-500"><i class='bx bx-x text-2xl'></i></button>
+            </div>
+            <form id="form-equipe" class="p-6 space-y-4">
+                <input type="text" id="eq-nome" placeholder="Nome Completo" required class="w-full p-2.5 border rounded-lg text-sm bg-slate-50">
+                <select id="eq-cargo" class="w-full p-2.5 border rounded-lg text-sm bg-slate-50">
+                    <option value="Marceneiro">Marceneiro</option>
+                    <option value="Montador">Montador de Móveis</option>
+                    <option value="Motorista">Motorista/Logística</option>
+                    <option value="Ajudante">Ajudante Geral</option>
+                </select>
+                <input type="text" id="eq-cnh" placeholder="CNH (se aplicável)" class="w-full p-2.5 border rounded-lg text-sm bg-slate-50">
+                <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg font-bold">Salvar Funcionário</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Frota -->
+    <div id="modal-frota" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="p-4 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-lg text-slate-800">Cadastrar Veículo AED</h3>
+                <button onclick="fecharModal('modal-frota')" class="text-slate-400 hover:text-red-500"><i class='bx bx-x text-2xl'></i></button>
+            </div>
+            <form id="form-frota" class="p-6 space-y-4">
+                <input type="text" id="fr-placa" placeholder="Placa (Ex: AED-2024)" required class="w-full p-2.5 border rounded-lg text-sm bg-slate-50 uppercase font-mono">
+                <input type="text" id="fr-modelo" placeholder="Modelo (Ex: Caminhão Iveco / HR)" required class="w-full p-2.5 border rounded-lg text-sm bg-slate-50">
+                <select id="fr-status" class="w-full p-2.5 border rounded-lg text-sm bg-slate-50">
+                    <option value="Disponível">Na Marcenaria (Disponível)</option>
+                    <option value="Em Rota">Em Rota / Montagem</option>
+                    <option value="Manutenção">Em Oficina</option>
+                </select>
+                <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg font-bold">Salvar Veículo</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal IA Prospecção -->
+    <div id="modal-ia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div class="bg-slate-900 p-4 text-white flex justify-between items-center border-b-4 border-red-600">
+                <h3 class="font-bold flex items-center gap-2 tracking-wide"><i class='bx bx-brain text-red-500'></i> IA de Vendas - AED</h3>
+                <button onclick="fecharModal('modal-ia')" class="text-slate-400 hover:text-white"><i class='bx bx-x text-2xl'></i></button>
+            </div>
+            <div class="p-6">
+                <p class="text-xs text-slate-500 font-bold mb-1 uppercase">Estratégia de Abordagem</p>
+                <select id="ia-contexto" class="w-full p-2.5 mb-3 border border-slate-200 rounded-lg text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-red-500">
+                    <option value="manutencao">Oferecer Manutenção Preventiva na Loja</option>
+                    <option value="apresentacao">Apresentar AED (Fornecedor Homologado)</option>
+                    <option value="brinde">Avisar que vai passar para deixar um brinde/amostra</option>
+                </select>
+                <div class="relative">
+                    <textarea id="ia-texto" class="w-full h-48 p-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none leading-relaxed text-slate-700"></textarea>
+                    <div id="ia-loading" class="absolute inset-0 bg-white/90 z-10 flex flex-col items-center justify-center hidden rounded-lg">
+                        <div class="loader mb-2 border-t-red-600"></div>
+                        <p class="text-xs font-bold text-red-600 animate-pulse">AED IA Escrevendo Mensagem...</p>
+                    </div>
+                </div>
+                <div class="mt-4 flex gap-3">
+                    <button onclick="gerarTextoIA()" class="flex-1 border border-slate-300 text-slate-700 hover:bg-slate-50 py-2.5 rounded-lg text-sm font-bold transition"><i class='bx bx-refresh'></i> Tentar Outra</button>
+                    <button onclick="enviarWpp()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-bold shadow-md flex justify-center items-center gap-2 transition"><i class='bx bxl-whatsapp text-xl'></i> Enviar Zap</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SCRIPTS ================= -->
+    <script>
+        // 1. CONFIGURAÇÃO FIREBASE
+        // OBS: Crie seu banco no console.firebase.google.com e cole aqui
+        const firebaseConfig = {
+            apiKey: "",
+            authDomain: "",
+            databaseURL: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+
+        // Inicializa Firebase (só se config estiver preenchida para evitar erros no teste visual)
+        let db, auth;
+        try {
+            if(firebaseConfig.apiKey) {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                auth = firebase.auth();
+            } else {
+                console.warn("Firebase não configurado. Entrando em Modo Visual de Demonstração AED.");
+            }
+        } catch(e) {
+            console.error(e);
+        }
+
+        // Variáveis Globais
+        let currentUserId = null;
+        let mapRastreio, mapRota;
+        let activeLoja = null;
+        let GEMINI_API_KEY = "";
+
+        // ================= NAVEGAÇÃO E UI =================
+        function nav(target) {
+            // Atualiza botões
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-red-600', 'text-white', 'bg-amber-500/10', 'text-amber-500');
+                if(btn.dataset.target === target) {
+                    if(target === 'prospeccao') btn.classList.add('bg-amber-500/20', 'text-amber-500');
+                    else btn.classList.add('bg-red-600', 'text-white');
+                } else {
+                    btn.classList.add('text-slate-300');
+                    if(btn.dataset.target === 'prospeccao') btn.classList.add('text-amber-500');
+                }
+            });
+
+            // Atualiza Views
+            document.querySelectorAll('.view-content').forEach(view => view.classList.add('hidden-view'));
+            document.getElementById(`view-${target}`).classList.remove('hidden-view');
+
+            // Títulos
+            const titles = {
+                'dashboard': 'Visão Geral', 'clientes': 'Carteira de Lojas (Franquias)', 'equipe': 'Equipe de Montagem & Fábrica',
+                'frota': 'Frota Logística AED', 'rastreio': 'Rastreamento de Entregas', 'prospeccao': 'Prospecção Inteligente (IA)', 'config': 'Segurança do Sistema'
+            };
+            document.getElementById('page-title').innerText = titles[target];
+
+            // Renderiza mapas se necessário
+            if(target === 'rastreio' && !mapRastreio) initMapRastreio();
+            if(target === 'prospeccao' && !mapRota) initMapRota();
+            if(target === 'rastreio' && mapRastreio) setTimeout(() => mapRastreio.invalidateSize(), 200);
+            if(target === 'prospeccao' && mapRota) setTimeout(() => mapRota.invalidateSize(), 200);
+        }
+
+        // Modais
+        function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
+        function fecharModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+
+        // ================= AUTENTICAÇÃO =================
+        document.getElementById('login-form').onsubmit = (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            
+            if(!auth) {
+                entrarNoSistema("Gestor_AED");
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    entrarNoSistema(userCredential.user.email);
+                })
+                .catch((error) => {
+                    document.getElementById('login-error').innerText = "Erro: Usuário ou senha incorretos.";
+                });
+        };
+
+        document.getElementById('btn-logout').onclick = () => {
+            if(auth) auth.signOut();
+            window.location.reload();
+        };
+
+        function entrarNoSistema(email) {
+            document.getElementById('login-view').classList.add('hidden-view');
+            document.getElementById('app-view').classList.remove('hidden-view');
+            document.getElementById('user-display').innerText = email.split('@')[0];
+            if(auth && auth.currentUser) currentUserId = auth.currentUser.uid;
+            
+            carregarDadosIniciais();
+            nav('dashboard');
+        }
+
+        if(auth) {
+            auth.onAuthStateChanged((user) => {
+                if (user) entrarNoSistema(user.email);
+            });
+        }
+
+        // ================= BANCO DE DADOS (CRUD Básico) =================
+        function carregarDadosIniciais() {
+            if(!db || !currentUserId) {
+                // Mock de Dados Iniciais AED Marcenaria
+                renderTabelaClientes([
+                    {id: 1, nome: "Mercadão dos Óculos - Centro", tel: "17999999999", cid: "S.J. Rio Preto - SP"},
+                    {id: 2, nome: "Ótica Diniz - Shopping", tel: "11988887777", cid: "São Paulo - SP"}
+                ]);
+                document.getElementById('dash-clientes').innerText = "2";
+                
+                renderCardsEquipe([
+                    {id: 1, nome: "João Silva", cargo: "Montador de Móveis", cnh: "Sim"},
+                    {id: 2, nome: "Carlos", cargo: "Motorista", cnh: "Sim (D)"}
+                ]);
+                document.getElementById('dash-motoristas').innerText = "2";
+
+                renderCardsFrota([
+                    {id: 1, placa: "AED-2024", modelo: "Caminhão Iveco", status: "Em Rota"},
+                    {id: 2, placa: "MAR-0001", modelo: "Fiorino", status: "Disponível"}
+                ]);
+                document.getElementById('dash-frota').innerText = "2";
+                return;
+            }
+
+            // Realtime Listeners
+            db.ref(`empresas/${currentUserId}/clientes`).on('value', snap => {
+                const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
+                document.getElementById('dash-clientes').innerText = dados.length;
+                renderTabelaClientes(dados);
+            });
+
+            db.ref(`empresas/${currentUserId}/equipe`).on('value', snap => {
+                const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
+                document.getElementById('dash-motoristas').innerText = dados.length;
+                renderCardsEquipe(dados);
+            });
+
+            db.ref(`empresas/${currentUserId}/frota`).on('value', snap => {
+                const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
+                document.getElementById('dash-frota').innerText = dados.length;
+                renderCardsFrota(dados);
+            });
+
+            db.ref(`empresas/${currentUserId}/config/gemini_key`).on('value', snap => {
+                if(snap.exists()) {
+                    GEMINI_API_KEY = snap.val();
+                    document.getElementById('gemini-key').value = GEMINI_API_KEY;
+                }
+            });
+        }
+
+        // Formulários de Cadastro
+        document.getElementById('form-cliente').onsubmit = (e) => {
+            e.preventDefault();
+            if(!db) return fecharModal('modal-cliente');
+            db.ref(`empresas/${currentUserId}/clientes`).push({
+                nome: document.getElementById('cli-nome').value,
+                tel: document.getElementById('cli-tel').value,
+                cid: document.getElementById('cli-cidade').value,
+                end: document.getElementById('cli-end').value
+            });
+            fecharModal('modal-cliente'); e.target.reset();
+        };
+
+        document.getElementById('form-equipe').onsubmit = (e) => {
+            e.preventDefault();
+            if(!db) return fecharModal('modal-equipe');
+            db.ref(`empresas/${currentUserId}/equipe`).push({
+                nome: document.getElementById('eq-nome').value,
+                cargo: document.getElementById('eq-cargo').value,
+                cnh: document.getElementById('eq-cnh').value
+            });
+            fecharModal('modal-equipe'); e.target.reset();
+        };
+
+        document.getElementById('form-frota').onsubmit = (e) => {
+            e.preventDefault();
+            if(!db) return fecharModal('modal-frota');
+            db.ref(`empresas/${currentUserId}/frota`).push({
+                placa: document.getElementById('fr-placa').value.toUpperCase(),
+                modelo: document.getElementById('fr-modelo').value,
+                status: document.getElementById('fr-status').value
+            });
+            fecharModal('modal-frota'); e.target.reset();
+        };
+
+        function salvarConfig() {
+            const key = document.getElementById('gemini-key').value;
+            if(!db) return alert("Firebase não configurado. Modo visual.");
+            db.ref(`empresas/${currentUserId}/config/gemini_key`).set(key);
+            alert("Chave salva com segurança na AED!");
+        }
+
+        // Renderizadores
+        function renderTabelaClientes(lista) {
+            const tbody = document.getElementById('lista-clientes');
+            tbody.innerHTML = lista.map(c => `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="p-4 font-bold text-slate-700">${c.nome}</td>
+                    <td class="p-4 text-slate-500">${c.tel}</td>
+                    <td class="p-4 text-slate-500">${c.cid}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="excluir('clientes', '${c.id}')" class="text-red-400 hover:text-red-600"><i class='bx bx-trash text-xl'></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCardsEquipe(lista) {
+            const div = document.getElementById('lista-equipe');
+            div.innerHTML = lista.map(e => `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-4 hover:border-red-200 transition">
+                    <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-xl text-slate-500"><i class='bx bxs-user'></i></div>
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-slate-800">${e.nome}</h4>
+                        <p class="text-xs text-red-600 font-bold uppercase tracking-wide">${e.cargo} ${e.cnh ? '| CNH: '+e.cnh : ''}</p>
+                    </div>
+                    <button onclick="excluir('equipe', '${e.id}')" class="text-red-400 hover:bg-red-50 p-2 rounded-lg"><i class='bx bx-trash'></i></button>
+                </div>
+            `).join('');
+        }
+
+        function renderCardsFrota(lista) {
+            const div = document.getElementById('lista-frota');
+            div.innerHTML = lista.map(f => {
+                const color = f.status === 'Disponível' ? 'text-green-500' : (f.status === 'Em Rota' ? 'text-blue-500' : 'text-orange-500');
+                return `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between hover:shadow-md transition">
+                    <div>
+                        <h4 class="font-black text-slate-800 text-lg">${f.placa}</h4>
+                        <p class="text-sm text-slate-500">${f.modelo}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold uppercase ${color} mb-1 flex items-center justify-end gap-1"><i class='bx bxs-circle text-[8px]'></i> ${f.status}</p>
+                        <button onclick="excluir('frota', '${f.id}')" class="text-xs text-slate-400 hover:text-red-600 font-medium">Remover da Frota</button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        window.excluir = (path, id) => {
+            if(!db || id === 'undefined') return;
+            if(confirm("Confirma a exclusão deste registro?")) {
+                db.ref(`empresas/${currentUserId}/${path}/${id}`).remove();
+            }
+        };
+
+        // ================= IMPORT / EXPORT EXCEL =================
+        function exportarExcel() {
+            if(!db) return alert("Firebase não configurado.");
+            db.ref(`empresas/${currentUserId}/clientes`).once('value', snap => {
+                const dados = [];
+                snap.forEach(c => { dados.push(c.val()); });
+                if(dados.length === 0) return alert("Nada para exportar.");
+                const ws = XLSX.utils.json_to_sheet(dados);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Lojas_Franquias");
+                XLSX.writeFile(wb, "AED_Marcenaria_Clientes.xlsx");
+            });
+        }
+
+        function importarExcel(event) {
+            const file = event.target.files[0];
+            if(!file || !db) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet);
+                
+                let count = 0;
+                json.forEach(linha => {
+                    db.ref(`empresas/${currentUserId}/clientes`).push({
+                        nome: linha.Nome || linha.Loja || linha.Empresa || "Loja Desconhecida",
+                        tel: linha.Telefone || linha.WhatsApp || "",
+                        cid: linha.Cidade || linha.UF || "",
+                        end: linha.Endereco || ""
+                    });
+                    count++;
+                });
+                alert(`${count} lojas importadas com sucesso para a AED Marcenaria!`);
+                document.getElementById('file-upload').value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ================= MAPAS (LEAFLET) =================
+        function initMapRastreio() {
+            // Focado em São José do Rio Preto (Sede AED)
+            mapRastreio = L.map('map-rastreio').setView([-20.8202, -49.3797], 7);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OSM' }).addTo(mapRastreio);
+            
+            // Sede AED
+            const hqIcon = L.divIcon({html: "<div class='bg-slate-900 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs border-2 border-red-600 shadow-lg'>AD</div>", className: 'bg-transparent'});
+            L.marker([-20.8202, -49.3797], {icon: hqIcon}).addTo(mapRastreio).bindPopup('<b>Fábrica AED Marcenaria</b><br>S.J. Rio Preto').openPopup();
+
+            // Caminhões na rua (Simulação visual Baseada na rota real do vídeo do cliente)
+            const truckIcon = L.divIcon({html: "<i class='bx bxs-truck text-3xl text-red-600 drop-shadow-md'></i>", className: 'bg-transparent', iconSize: [30, 30]});
+            L.marker([-19.31, -46.04], {icon: truckIcon}).addTo(mapRastreio).bindPopup('<b>Caminhão Iveco (AED-2024)</b><br>Saindo de São Gotardo, MG');
+        }
+
+        function initMapRota() {
+            mapRota = L.map('map-rota').setView([-20.0, -46.0], 6);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapRota);
+        }
+
+        // ================= PROSPECÇÃO & IA (Integração) =================
+        const mockLojas = [
+            { id: 1, nome: "Mercadão dos Óculos - Barretos", cidade: "Barretos, SP", dist: "12 km da rota", lat: -20.5598, lng: -48.5678, telefone: "5517999999999" },
+            { id: 2, nome: "Mercadão dos Óculos - Franca", cidade: "Franca, SP", dist: "5 km da rota", lat: -20.5385, lng: -47.4009, telefone: "5516999999999" }
+        ];
+
+        document.getElementById('btn-analisar-rota').onclick = () => {
+            const btn = document.getElementById('btn-analisar-rota');
+            btn.innerHTML = "<div class='loader border-t-amber-500'></div> Rastreador AED Ativo...";
+            
+            setTimeout(() => {
+                btn.innerHTML = "<i class='bx bx-check'></i> Mapeamento Concluído";
+                btn.classList.replace('bg-slate-900', 'bg-green-600');
+                btn.classList.replace('hover:bg-black', 'hover:bg-green-700');
+                
+                // Rota simulada (São Gotardo -> Alto Rio Doce, do vídeo do cliente)
+                mapRota.eachLayer((l) => { if(l instanceof L.Marker || l instanceof L.Polyline) mapRota.removeLayer(l); });
+                const origem = [-19.31, -46.04]; const destino = [-21.02, -43.40];
+                
+                const dotBlue = L.divIcon({className: 'bg-blue-600 w-3 h-3 rounded-full border-2 border-white'});
+                const dotRed = L.divIcon({className: 'bg-red-600 w-3 h-3 rounded-full border-2 border-white'});
+                
+                L.marker(origem, {icon: dotBlue}).addTo(mapRota).bindPopup("Origem da Entrega"); 
+                L.marker(destino, {icon: dotRed}).addTo(mapRota).bindPopup("Destino Final");
+
+                const route = L.polyline([origem, [-20.53, -47.40], destino], {color: '#dc2626', weight: 4, dashArray: '8, 8'}).addTo(mapRota);
+                mapRota.fitBounds(route.getBounds(), {padding: [30, 30]});
+
+                const iconLoja = L.divIcon({html: "<i class='bx bxs-store text-2xl text-amber-500 drop-shadow'></i>", className: 'bg-transparent', iconSize: [24,24]});
+                
+                const lista = document.getElementById('lista-prospeccao');
+                lista.innerHTML = mockLojas.map(loja => {
+                    L.marker([loja.lat, loja.lng], {icon: iconLoja}).addTo(mapRota).bindPopup(loja.nome);
+                    return `
+                    <div class="border border-slate-200 p-3 rounded-xl hover:border-red-300 bg-white transition">
+                        <h4 class="font-bold text-sm text-slate-800">${loja.nome}</h4>
+                        <p class="text-xs text-slate-500 mb-3 flex items-center gap-1"><i class='bx bx-map-pin'></i> ${loja.dist}</p>
+                        <button onclick="prepararIA(${loja.id})" class="w-full bg-slate-900 hover:bg-black text-white text-xs py-2.5 rounded-lg font-bold flex justify-center items-center gap-2 transition"><i class='bx bx-brain text-red-500 text-lg'></i> Abordagem IA</button>
+                    </div>`;
+                }).join('');
+            }, 1800);
+        };
+
+        window.prepararIA = (id) => {
+            activeLoja = mockLojas.find(l => l.id === id);
+            abrirModal('modal-ia');
+            gerarTextoIA();
+        };
+
+        window.gerarTextoIA = async () => {
+            const loading = document.getElementById('ia-loading');
+            const txt = document.getElementById('ia-texto');
+            const tipo = document.getElementById('ia-contexto').value;
+            
+            loading.classList.remove('hidden');
+            txt.value = "";
+
+            if(!GEMINI_API_KEY) {
+                // Mock text se não tiver chave (Personalizado AED)
+                setTimeout(() => {
+                    txt.value = `[MODO TESTE - Insira a chave Gemini nas Configurações]\n\nOlá equipe do ${activeLoja.nome}! Tudo bem?\n\nAqui é da AED Marcenaria (somos fornecedores homologados da ABF e montamos lojas da rede).\n\nMeu caminhão vai passar na rota de entrega bem perto de vocês (${activeLoja.dist}). Vocês estão precisando de alguma manutenção preventiva nos móveis ou ajuste de gavetas/portas? Consigo mandar minha equipe passar aí sem cobrar taxa de deslocamento. Me avise se fizer sentido!`;
+                    loading.classList.add('hidden');
+                }, 1000);
+                return;
+            }
+
+            // Chamada Real para o Gemini (Treinamento AED)
+            try {
+                const prompt = `Você é um excelente vendedor corporativo da empresa "AED Marcenaria" (uma empresa com sede em São José do Rio Preto, SP, fornecedora homologada pela ABF, especializada em mobiliários, fachadas em ACM e comunicação visual para franquias, especificamente redes de óticas). 
+                
+                Escreva uma mensagem de WhatsApp amigável, direta e persuasiva para a loja "${activeLoja.nome}" localizada em "${activeLoja.cidade}". 
+                
+                Contexto Logístico: Nossos montadores e o caminhão estarão passando na rota de entrega a exatos "${activeLoja.dist}" da loja deles nos próximos dias. 
+                
+                Objetivo da mensagem: ${tipo === 'manutencao' ? 'Oferecer uma visita rápida da equipe de montagem para fazer manutenções preventivas nos móveis da loja, destacando que como já estão na rota, não será cobrada a taxa de deslocamento, apenas o serviço/peça se houver.' : (tipo === 'apresentacao' ? 'Apresentar a AED Marcenaria como o fornecedor oficial da franquia deles, avisando que estamos na região fazendo outras montagens da rede e se eles querem um orçamento para renovar a fachada ou móveis antigos.' : 'Avisar que nossa equipe vai passar na rua da loja deles e gostaria de deixar um brinde e nosso portfólio impresso de novos acabamentos de MDF homologados pela rede. Pedir autorização para passar rapidinho.')}. 
+                
+                A mensagem deve parecer que foi escrita por um humano, usando emojis moderados, sendo extremamente educada.`;
+                
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const data = await response.json();
+                txt.value = data.candidates[0].content.parts[0].text;
+            } catch(e) {
+                txt.value = "Erro ao conectar com a IA da Google. Verifique sua chave API nas configurações do sistema AED.";
+            } finally {
+                loading.classList.add('hidden');
+            }
+        };
+
+        window.enviarWpp = () => {
+            const txt = document.getElementById('ia-texto').value;
+            if(!activeLoja || !txt) return;
+            window.open(`https://wa.me/${activeLoja.telefone}?text=${encodeURIComponent(txt)}`, '_blank');
+        };
+
+    </script>
+</body>
+</html>
