@@ -91,6 +91,7 @@
                 <button onclick="nav('dashboard')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" data-target="dashboard">
                     <i class='bx bxs-dashboard text-xl'></i> <span class="font-semibold text-sm">Dashboard Central</span>
                 </button>
+                
                 <div class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-4 mb-2 px-3">Operação na Estrada</div>
                 <button onclick="nav('cargas')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" data-target="cargas">
                     <i class='bx bx-package text-xl'></i> <span class="font-semibold text-sm">Romaneios / Despachos</span>
@@ -116,6 +117,10 @@
                     <i class='bx bxs-truck text-xl'></i> <span class="font-semibold text-sm">Cadastro de Frota</span>
                 </button>
                 
+                <div class="border-t border-slate-800 my-4"></div>
+                <button onclick="nav('config')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors" data-target="config">
+                    <i class='bx bx-shield-quarter text-xl'></i> <span class="font-semibold text-sm">Configurações & Cofre</span>
+                </button>
             </nav>
 
             <div class="p-4 border-t border-slate-800">
@@ -309,18 +314,56 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="lista-equipe"></div>
                 </div>
 
-                <!-- 8. Modais Base de Dados: FROTA COMPLETA (Tabela de Veículos) -->
+                <!-- 8. Modais Base de Dados: FROTA COMPLETA (Tabela de Veículos com Gestão) -->
                 <div id="view-frota" class="view-content hidden-view space-y-4">
                     <div class="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center gap-4">
                         <div>
                             <h3 class="font-bold text-slate-800">Frota Logística</h3>
-                            <p class="text-xs text-slate-500">Faça a gestão dos caminhões da empresa.</p>
+                            <p class="text-xs text-slate-500">Faça a gestão dos caminhões da empresa e controle as manutenções.</p>
                         </div>
                         <button onclick="abrirModal('modal-frota')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
                             <i class='bx bx-plus'></i> Cadastrar Novo Caminhão
                         </button>
                     </div>
+                    <!-- Local onde os cartões grandes e expandidos da frota vão aparecer -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="lista-frota"></div>
+                </div>
+
+                <!-- 9. Configurações API (Cofre da Empresa) -->
+                <div id="view-config" class="view-content hidden-view">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border max-w-2xl">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class='bx bx-shield-quarter text-amber-500'></i> Cofre de Integrações (APIs Ocultas)</h3>
+                        <div class="space-y-4">
+                            <div class="bg-slate-50 p-4 border rounded-lg border-l-4 border-l-purple-500">
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Cérebro IA (Google Gemini)</label>
+                                <p class="text-[10px] text-slate-500 mb-2">Responsável por redigir as abordagens comerciais no módulo Vendas no Percurso.</p>
+                                <input type="password" id="gemini-key" placeholder="AIzaSy..." class="w-full p-2.5 border rounded-md font-mono text-sm outline-none focus:border-purple-500">
+                            </div>
+                            <div class="bg-slate-50 p-4 border rounded-lg border-l-4 border-l-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Satélite (Google Maps & Places)</label>
+                                <p class="text-[10px] text-slate-500 mb-2">Necessário para traçar rotas, rastrear a frota e buscar clientes no radar.</p>
+                                <input type="password" id="maps-key" placeholder="AIzaSy..." class="w-full p-2.5 border rounded-md font-mono text-sm outline-none focus:border-blue-500">
+                            </div>
+                            
+                            <div class="bg-slate-50 p-4 border rounded-lg border-l-4 border-l-cyan-500">
+                                <div class="flex justify-between items-start mb-1">
+                                    <label class="block text-xs font-bold text-slate-700 uppercase">Armazenamento de Recibos (Cloudinary)</label>
+                                    <span class="bg-cyan-100 text-cyan-800 text-[10px] font-bold px-2 py-0.5 rounded border border-cyan-200" title="Consumo acumulado do plano gratuito">
+                                        Tráfego da Nuvem: <span id="cloud-bytes-display">0.00 MB</span>
+                                    </span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 mb-2">Configuração nativa para os motoristas enviarem fotos sem precisar de app externo.</p>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input type="text" id="cloud-name" placeholder="Cloud Name (ex: dtxyabc...)" class="w-full p-2.5 border rounded-md font-mono text-sm outline-none focus:border-cyan-500">
+                                    <input type="password" id="upload-preset" placeholder="Upload Preset (ex: aed_uploads)" class="w-full p-2.5 border rounded-md font-mono text-sm outline-none focus:border-cyan-500">
+                                </div>
+                            </div>
+
+                            <button onclick="salvarConfig()" class="bg-slate-900 text-white px-6 py-3 rounded-lg font-bold w-full hover:bg-black transition shadow-md flex justify-center items-center gap-2">
+                                <i class='bx bx-save'></i> Gravar Chaves no Banco de Dados
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -610,7 +653,16 @@
                     CLOUDINARY_CLOUD_NAME = cfgs.cloud_name || "";
                     CLOUDINARY_UPLOAD_PRESET = cfgs.upload_preset || "";
                     CLOUDINARY_BYTES_USED = cfgs.cloudinary_bytes_used || 0;
+
+                    if(document.getElementById('gemini-key')) document.getElementById('gemini-key').value = GEMINI_API_KEY;
+                    if(document.getElementById('maps-key')) document.getElementById('maps-key').value = GOOGLE_MAPS_KEY;
+                    if(document.getElementById('cloud-name')) document.getElementById('cloud-name').value = CLOUDINARY_CLOUD_NAME;
+                    if(document.getElementById('upload-preset')) document.getElementById('upload-preset').value = CLOUDINARY_UPLOAD_PRESET;
                     
+                    if(document.getElementById('cloud-bytes-display')) {
+                        document.getElementById('cloud-bytes-display').innerText = (CLOUDINARY_BYTES_USED / (1024 * 1024)).toFixed(2) + ' MB';
+                    }
+
                     if(GOOGLE_MAPS_KEY && !mapsLoaded) loadGoogleMapsScript();
                 }
             });
@@ -688,12 +740,13 @@
         function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
         function fecharModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
 
-        // --- E. PAINEL DO GESTOR (CRUDS EXPANDIDOS E RESTAURADOS) ---
+        // --- E. PAINEL DO GESTOR (CRUDS 100% DESDOBRADOS E FORMATADOS) ---
         function carregarDadosAdmin() {
             
-            // Render de Clientes com Endereço e Formatação Completa
+            // 1. Renderização Expandida de Clientes
             db.ref(`${DB_ROOT}/clientes`).on('value', snap => {
-                const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
+                const dados = []; 
+                snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
                 document.getElementById('dash-clientes').innerText = dados.length;
                 
                 document.getElementById('lista-clientes').innerHTML = dados.map(c => `
@@ -705,15 +758,18 @@
                         <td class="p-4 text-slate-600 font-medium">${c.tel}</td>
                         <td class="p-4 text-slate-600">${c.cid}</td>
                         <td class="p-4 text-center">
-                            <button onclick="excluir('clientes', '${c.id}')" class="text-red-400 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition"><i class='bx bx-trash text-lg'></i></button>
+                            <button onclick="excluir('clientes', '${c.id}')" class="text-red-400 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition">
+                                <i class='bx bx-trash text-lg'></i>
+                            </button>
                         </td>
                     </tr>
                 `).join('');
             });
 
-            // Render de Equipe com CNH e Informações Completas
+            // 2. Renderização Expandida de Equipe (Motoristas/Montadores)
             db.ref(`${DB_ROOT}/equipe`).on('value', snap => {
-                const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
+                const dados = []; 
+                snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
                 
                 document.getElementById('lista-equipe').innerHTML = dados.map(e => `
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-4 hover:border-red-200 transition relative overflow-hidden">
@@ -721,57 +777,138 @@
                         <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-xl text-slate-500 flex-shrink-0"><i class='bx bxs-user'></i></div>
                         <div class="flex-grow pt-2">
                             <h4 class="font-bold text-slate-800">${e.nome}</h4>
-                            <p class="text-xs text-red-600 font-bold uppercase tracking-wide">${e.cnh ? 'CNH: '+e.cnh : 'Sem CNH Informada'}</p>
+                            <p class="text-xs text-red-600 font-bold uppercase tracking-wide">${e.cnh ? 'CNH: ' + e.cnh : 'Sem CNH Informada'}</p>
                             <p class="text-xs text-slate-500 mt-1"><i class='bx bx-envelope'></i> ${e.email}</p>
                         </div>
-                        <button onclick="excluirUser('${e.id}')" class="text-red-400 hover:bg-red-50 p-2 rounded-lg transition" title="Excluir Acesso"><i class='bx bx-trash'></i></button>
+                        <button onclick="excluirUser('${e.id}')" class="text-red-400 hover:bg-red-50 p-2 rounded-lg transition" title="Excluir Acesso">
+                            <i class='bx bx-trash'></i>
+                        </button>
                     </div>
                 `).join('');
             });
 
-            // Render de Frota com Status (Disponível, Em Rota, etc)
+            // 3. Renderização Expandida e Avançada de Frota (Gestão de Manutenção, Pneus, etc)
             db.ref(`${DB_ROOT}/frota`).on('value', snap => {
-                const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
+                const dados = []; 
+                snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
                 document.getElementById('dash-frota').innerText = dados.length;
                 
                 document.getElementById('lista-frota').innerHTML = dados.map(f => {
-                    const color = f.status === 'Disponível' ? 'text-green-500' : (f.status === 'Em Rota' ? 'text-blue-500' : 'text-orange-500');
+                    const statusAtual = f.status || 'Disponível';
+                    const colorClass = statusAtual === 'Disponível' ? 'text-green-500' : (statusAtual === 'Em Rota' ? 'text-blue-500' : 'text-orange-500');
+                    
                     return `
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between hover:shadow-md transition">
-                        <div>
-                            <h4 class="font-black text-slate-800 text-lg">${f.placa}</h4>
-                            <p class="text-sm text-slate-500">${f.modelo}</p>
+                    <div class="bg-white p-5 border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="font-black text-xl text-slate-800 tracking-wide">${f.placa}</h4>
+                                <p class="text-sm text-slate-500 font-medium">${f.modelo}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-slate-50 border border-slate-200 ${colorClass}">
+                                    <i class='bx bxs-circle text-[8px]'></i> ${statusAtual}
+                                </span>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <p class="text-xs font-bold uppercase ${color} mb-1 flex items-center justify-end gap-1"><i class='bx bxs-circle text-[8px]'></i> ${f.status || 'Disponível'}</p>
-                            <button onclick="excluir('frota', '${f.id}')" class="text-xs text-slate-400 hover:text-red-600 font-medium">Remover da Frota</button>
+                        
+                        <div class="grid grid-cols-3 gap-2 border-t border-slate-100 pt-4">
+                            <button onclick="alert('Módulo de Manutenção Preventiva e Troca de Óleo em desenvolvimento.')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 transition" title="Manutenções e Óleo">
+                                <i class='bx bx-wrench text-lg mb-1'></i>
+                                <span class="text-[10px] font-bold uppercase">Revisão</span>
+                            </button>
+                            <button onclick="alert('Módulo de Gestão de Pneus em desenvolvimento.')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 transition" title="Troca de Pneus">
+                                <i class='bx bx-support text-lg mb-1'></i>
+                                <span class="text-[10px] font-bold uppercase">Pneus</span>
+                            </button>
+                            <button onclick="excluir('frota', '${f.id}')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition" title="Remover Veículo">
+                                <i class='bx bx-trash text-lg mb-1'></i>
+                                <span class="text-[10px] font-bold uppercase">Excluir</span>
+                            </button>
                         </div>
                     </div>
-                `}).join('');
+                    `;
+                }).join('');
             });
 
-            // Gestão de Cargas
+            // 4. Renderização Expandida de Cargas
             db.ref(`${DB_ROOT}/cargas`).on('value', snap => {
-                const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
+                const dados = []; 
+                snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
                 document.getElementById('dash-cargas').innerText = dados.filter(d => d.status === 'Em Rota').length;
+                
                 document.getElementById('lista-cargas').innerHTML = dados.reverse().map(c => {
-                    const badge = c.status === 'Entregue' ? '<span class="bg-green-100 text-green-800 px-2.5 py-1 rounded text-xs font-bold border border-green-200">Entregue</span>' : '<span class="bg-blue-100 text-blue-800 px-2.5 py-1 rounded text-xs font-bold border border-blue-200 animate-pulse">Em Rota</span>';
-                    return `<tr class="border-b hover:bg-slate-50"><td class="p-4"><div class="text-xs text-slate-500 font-bold mb-1.5">${new Date(c.data).toLocaleDateString('pt-BR')}</div>${badge}</td><td class="p-4"><p class="font-black text-slate-800"><i class='bx bxs-truck text-slate-400'></i> ${c.veiculo}</p><p class="text-xs text-blue-600 font-bold uppercase mt-1"><i class='bx bxs-user-badge'></i> ${c.motorista_nome||c.motorista_email}</p></td><td class="p-4 font-bold text-slate-700">${c.destino}</td><td class="p-4"><div class="text-xs font-black text-slate-700 bg-slate-100 border px-2 py-1 rounded mb-2 shadow-sm"><i class='bx bx-barcode'></i> NFe: ${c.nfe}</div><p class="text-xs text-slate-500 leading-tight">${c.desc}</p></td><td class="p-4 text-center"><button onclick="excluir('cargas','${c.id}')" class="text-red-400 hover:text-red-600 p-2"><i class='bx bx-trash text-xl'></i></button></td></tr>`;
+                    const badge = c.status === 'Entregue' 
+                        ? '<span class="bg-green-100 text-green-800 px-2.5 py-1 rounded text-xs font-bold border border-green-200">Entregue</span>' 
+                        : '<span class="bg-blue-100 text-blue-800 px-2.5 py-1 rounded text-xs font-bold border border-blue-200 animate-pulse">Em Rota</span>';
+                    
+                    return `
+                    <tr class="border-b hover:bg-slate-50 transition">
+                        <td class="p-4">
+                            <div class="text-xs text-slate-500 font-bold mb-1.5">${new Date(c.data).toLocaleDateString('pt-BR')}</div>
+                            ${badge}
+                        </td>
+                        <td class="p-4">
+                            <p class="font-black text-slate-800 flex items-center gap-1"><i class='bx bxs-truck text-slate-400'></i> ${c.veiculo}</p>
+                            <p class="text-xs text-blue-600 font-bold uppercase mt-1 tracking-wide"><i class='bx bxs-user-badge'></i> ${c.motorista_nome || c.motorista_email}</p>
+                        </td>
+                        <td class="p-4 font-bold text-slate-700">${c.destino}</td>
+                        <td class="p-4">
+                            <div class="text-xs font-black text-slate-700 bg-slate-100 border border-slate-200 inline-block px-2 py-1 rounded mb-2 shadow-sm">
+                                <i class='bx bx-barcode'></i> NFe: ${c.nfe}
+                            </div>
+                            <p class="text-xs text-slate-500 leading-tight">${c.desc}</p>
+                        </td>
+                        <td class="p-4 text-center">
+                            <button onclick="excluir('cargas','${c.id}')" class="text-red-400 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition">
+                                <i class='bx bx-trash text-xl'></i>
+                            </button>
+                        </td>
+                    </tr>
+                    `;
                 }).join('');
             });
 
-            // Ocorrências / Gastos
+            // 5. Renderização Expandida de Ocorrências / Gastos
             db.ref(`${DB_ROOT}/ocorrencias`).on('value', snap => {
-                const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
+                const dados = []; 
+                snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
                 document.getElementById('dash-ocorrencias').innerText = dados.length;
+                
                 document.getElementById('lista-ocorrencias').innerHTML = dados.reverse().map(o => {
-                    const iconColor = o.tipo.includes('Portagem') ? 'text-blue-500' : (o.tipo.includes('Combustível') ? 'text-orange-500' : 'text-red-500');
-                    const linkImg = o.imgUrl ? `<a href="${o.imgUrl}" target="_blank" class="block w-full text-center bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs py-2.5 rounded-md font-bold transition mt-3 shadow-sm"><i class='bx bx-link-external'></i> Ver Comprovante (Nuvem)</a>` : '<p class="text-[10px] text-slate-400 text-center mt-3 border-t border-dashed pt-2">Nenhum anexo digitalizado.</p>';
-                    return `<div class="bg-white p-5 border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition"><div class="flex justify-between items-start border-b border-slate-100 pb-3 mb-3"><div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${new Date(o.data).toLocaleString('pt-BR')}</p><p class="font-black text-slate-800 flex items-center gap-1 mt-1"><i class='bx bxs-truck ${iconColor}'></i> ${o.veiculo}</p></div><div class="text-right"><p class="text-xs font-bold text-slate-500 uppercase">${o.tipo}</p><p class="text-xl font-black text-red-600 leading-none mt-1">R$ ${parseFloat(o.valor).toFixed(2)}</p></div></div><p class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed italic">"${o.desc}"</p><div class="flex justify-between items-center mt-2 px-1"><p class="text-[10px] text-slate-400">Por: ${o.motorista.split('@')[0]}</p><button onclick="excluir('ocorrencias','${o.id}')" class="text-red-400 hover:text-red-600"><i class='bx bx-trash text-sm'></i></button></div>${linkImg}</div>`;
+                    const iconColor = (o.tipo || '').includes('Portagem') ? 'text-blue-500' : ((o.tipo || '').includes('Combustível') ? 'text-orange-500' : 'text-red-500');
+                    
+                    const linkImg = o.imgUrl 
+                        ? `<a href="${o.imgUrl}" target="_blank" class="flex justify-center items-center gap-1 w-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs py-2.5 rounded-md font-bold transition mt-3 shadow-sm">
+                               <i class='bx bx-link-external'></i> Ver Comprovante (Nuvem)
+                           </a>` 
+                        : `<p class="text-[10px] text-slate-400 text-center mt-3 border-t border-dashed pt-2">Nenhum anexo digitalizado.</p>`;
+                    
+                    return `
+                    <div class="bg-white p-5 border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-start border-b border-slate-100 pb-3 mb-3">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${new Date(o.data).toLocaleString('pt-BR')}</p>
+                                <p class="font-black text-slate-800 flex items-center gap-1 mt-1"><i class='bx bxs-truck ${iconColor}'></i> ${o.veiculo}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-slate-500 uppercase">${o.tipo}</p>
+                                <p class="text-xl font-black text-red-600 leading-none mt-1">R$ ${parseFloat(o.valor || 0).toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed italic">"${o.desc}"</p>
+                        <div class="flex justify-between items-center mt-3 px-1">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Por: ${(o.motorista || '').split('@')[0]}</p>
+                            <button onclick="excluir('ocorrencias','${o.id}')" class="text-red-400 hover:text-red-700 transition" title="Apagar Relatório">
+                                <i class='bx bx-trash text-lg'></i>
+                            </button>
+                        </div>
+                        ${linkImg}
+                    </div>
+                    `;
                 }).join('');
             });
 
-            // Mapas em tempo real
+            // 6. Mapas em tempo real
             db.ref(`${DB_ROOT}/gps_tracking`).on('value', snap => {
                 let countAtivos = 0;
                 if(snap.exists() && mapRastreioObj) {
@@ -860,6 +997,19 @@
         };
 
         window.excluir = (p, id) => { if(confirm("Excluir este registo permanentemente?")) db.ref(`${DB_ROOT}/${p}/${id}`).remove(); };
+        
+        window.salvarConfig = () => {
+            const mk = document.getElementById('maps-key').value;
+            db.ref(`${DB_ROOT}/config`).update({ 
+                gemini_key: document.getElementById('gemini-key').value, 
+                maps_key: mk,
+                cloud_name: document.getElementById('cloud-name').value,
+                upload_preset: document.getElementById('upload-preset').value
+            }).then(() => { 
+                alert("As chaves da empresa foram salvas no cofre de dados."); 
+                if(mk) loadGoogleMapsScript(); 
+            }); 
+        };
 
         // --- F. APP MOBILE DO MOTORISTA (100% AUTOMÁTICO E BLINDADO) ---
         let watchId = null; let veiculoDoRomaneio = null; let listenerCargasMotorista = null;
@@ -888,17 +1038,33 @@
                     
                     const btnGps = document.getElementById('btn-toggle-gps');
                     btnGps.disabled = false;
-                    if(!watchId) { btnGps.className = "w-40 h-40 bg-blue-900 border-4 border-blue-500 rounded-full flex flex-col items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.5)] z-10 transition"; document.getElementById('gps-icon').className = "bx bx-navigation text-6xl text-white mb-1"; document.getElementById('gps-text').className = "font-black text-white uppercase text-sm text-center"; document.getElementById('gps-text').innerText = "INICIAR VIAGEM\nLIGAR GPS"; }
+                    if(!watchId) { 
+                        btnGps.className = "w-40 h-40 bg-blue-900 border-4 border-blue-500 rounded-full flex flex-col items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.5)] z-10 transition"; 
+                        document.getElementById('gps-icon').className = "bx bx-navigation text-6xl text-white mb-1"; 
+                        document.getElementById('gps-text').className = "font-black text-white uppercase text-sm text-center"; 
+                        document.getElementById('gps-text').innerText = "INICIAR VIAGEM\nLIGAR GPS"; 
+                    }
                     document.getElementById('gps-status-msg').innerHTML = "Toque no botão para ligar o rastreador de segurança e iniciar a viagem.";
 
                     document.getElementById('motorista-cargas-container').classList.remove('hidden');
+                    
                     document.getElementById('motorista-lista-cargas').innerHTML = meuRomaneio.map(c => `
-                        <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-2xl relative overflow-hidden">
+                        <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-2xl relative overflow-hidden mb-4">
                             <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
-                            <p class="text-[10px] text-blue-400 font-black uppercase mb-1">Destino Final</p>
+                            <p class="text-[10px] text-blue-400 font-black uppercase mb-1 tracking-widest">Destino Final</p>
                             <p class="text-xl font-black text-white mb-3">${c.destino}</p>
-                            <div class="bg-slate-900 p-3 rounded-lg mb-4 border border-slate-700"><p class="text-xs font-bold text-white border-b border-slate-800 pb-2 mb-2"><i class='bx bx-barcode text-blue-400'></i> NFe: ${c.nfe}</p><p class="text-sm text-slate-300 font-medium">${c.desc}</p></div>
-                            <button onclick="motoristaConfirmaEntrega('${c.id}', '${c.veiculo}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-lg"><i class='bx bx-check-double text-2xl'></i> FINALIZAR DESCARGA</button>
+                            
+                            <div class="bg-slate-900 p-4 rounded-xl mb-4 border border-slate-700">
+                                <p class="text-xs font-bold text-white border-b border-slate-800 pb-2 mb-2 flex items-center justify-between">
+                                    <span class="text-slate-400 font-normal"><i class='bx bx-barcode'></i> NFe:</span> 
+                                    <span class="text-blue-400">${c.nfe}</span>
+                                </p>
+                                <p class="text-sm text-slate-300 font-medium leading-relaxed">${c.desc}</p>
+                            </div>
+                            
+                            <button onclick="motoristaConfirmaEntrega('${c.id}', '${c.veiculo}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-lg transition transform active:scale-95 border border-green-400">
+                                <i class='bx bx-check-double text-2xl drop-shadow'></i> FINALIZAR DESCARGA
+                            </button>
                         </div>
                     `).join('');
 
@@ -1026,7 +1192,9 @@
             s.onload = () => { mapsLoaded = true; checkMap('rastreio'); checkMap('rota'); };
             document.head.appendChild(s);
         }
+        
         let markersFrota = {};
+        
         function checkMap(type) {
             if(!mapsLoaded) return;
             if(type === 'rastreio' && !document.getElementById('view-rastreio').classList.contains('hidden-view')) {
@@ -1043,6 +1211,7 @@
                 }
             }
         }
+        
         function atualizarMarcadorVeiculo(placa, lat, lng, motorista) {
             if(!mapRastreioObj) return;
             const pos = { lat, lng };
@@ -1088,16 +1257,31 @@
                 }
             });
         };
+        
         function renderizarPlaces(places) {
             document.getElementById('badge-places').innerText = places.length;
             document.getElementById('badge-places').classList.remove('hidden');
+            
             document.getElementById('lista-prospeccao').innerHTML = places.map(p => {
                 const m = new google.maps.Marker({ map: mapRotaObj, position: p.geometry.location, title: p.name });
                 routeMarkers.push(m);
-                const escN = p.name.replace(/'/g, "\\'"); const escA = (p.formatted_address||"").replace(/'/g, "\\'");
-                return `<div class="p-4 border border-slate-200 rounded-xl bg-white shadow-sm transition hover:shadow-md"><h4 class="font-black text-slate-800 text-sm mb-1">${p.name}</h4><p class="text-xs text-slate-500 mb-3 leading-tight"><i class='bx bx-map text-red-500'></i> ${p.formatted_address}</p><button onclick="prepararIA('${p.place_id}','${escN}','${escA}')" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white w-full py-2.5 rounded-lg text-xs font-black tracking-wide shadow-md transition transform active:scale-95 flex items-center justify-center gap-1"><i class='bx bx-comment-detail text-lg'></i> Abordagem IA de Oportunidade</button></div>`;
+                const escN = p.name.replace(/'/g, "\\'"); 
+                const escA = (p.formatted_address||"").replace(/'/g, "\\'");
+                
+                return `
+                <div class="p-4 border border-slate-200 rounded-xl bg-white shadow-sm transition hover:shadow-md">
+                    <h4 class="font-black text-slate-800 text-sm mb-1">${p.name}</h4>
+                    <p class="text-xs text-slate-500 mb-3 leading-tight flex items-start gap-1">
+                        <i class='bx bx-map text-red-500 mt-0.5'></i> ${p.formatted_address}
+                    </p>
+                    <button onclick="prepararIA('${p.place_id}','${escN}','${escA}')" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white w-full py-2.5 rounded-lg text-xs font-black tracking-wide shadow-md transition transform active:scale-95 flex items-center justify-center gap-1">
+                        <i class='bx bx-comment-detail text-lg'></i> Abordagem IA de Oportunidade
+                    </button>
+                </div>
+                `;
             }).join('');
         }
+        
         window.prepararIA = (id, nome, end) => {
             if(!placesService) return;
             activePlaceDetails = { name: nome, address: end, phone: "" };
@@ -1113,6 +1297,7 @@
                 gerarTextoIA();
             });
         };
+        
         window.gerarTextoIA = async () => {
             const txt = document.getElementById('ia-texto');
             const loading = document.getElementById('ia-loading');
@@ -1126,6 +1311,7 @@
             } catch(e) { txt.value = "Sinal da IA interrompido. Verifique chaves."; }
             finally { loading.classList.add('hidden'); }
         };
+        
         window.enviarWpp = () => {
             const num = document.getElementById('ia-store-phone').value;
             const txt = document.getElementById('ia-texto').value;
