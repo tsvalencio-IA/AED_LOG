@@ -116,10 +116,6 @@
                     <i class='bx bxs-truck text-xl'></i> <span class="font-semibold text-sm">Cadastro de Frota</span>
                 </button>
                 
-                <div class="border-t border-slate-800 my-4"></div>
-                <button onclick="nav('config')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors" data-target="config">
-                    <i class='bx bx-shield-quarter text-xl'></i> <span class="font-semibold text-sm">Configurações & Cofre</span>
-                </button>
             </nav>
 
             <div class="p-4 border-t border-slate-800">
@@ -191,7 +187,13 @@
                     <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
                         <table class="w-full text-left text-sm min-w-[800px]">
                             <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-xs border-b">
-                                <tr><th class="p-4">Data/Status</th><th class="p-4">Logística (Veículo/Motorista)</th><th class="p-4">Destino/Loja</th><th class="p-4">Mercadorias & NFe</th><th class="p-4 text-center">Ações</th></tr>
+                                <tr>
+                                    <th class="p-4">Data/Status</th>
+                                    <th class="p-4">Logística (Veículo/Motorista)</th>
+                                    <th class="p-4">Destino/Loja</th>
+                                    <th class="p-4">Mercadorias & NFe</th>
+                                    <th class="p-4 text-center">Ações</th>
+                                </tr>
                             </thead>
                             <tbody id="lista-cargas" class="divide-y divide-slate-100"></tbody>
                         </table>
@@ -307,51 +309,18 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="lista-equipe"></div>
                 </div>
 
-                <!-- 8. Modais Base de Dados: FROTA COMPLETA -->
+                <!-- 8. Modais Base de Dados: FROTA COMPLETA (Tabela de Veículos) -->
                 <div id="view-frota" class="view-content hidden-view space-y-4">
-                    <div class="flex justify-end">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center gap-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800">Frota Logística</h3>
+                            <p class="text-xs text-slate-500">Faça a gestão dos caminhões da empresa.</p>
+                        </div>
                         <button onclick="abrirModal('modal-frota')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
                             <i class='bx bx-plus'></i> Cadastrar Novo Caminhão
                         </button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="lista-frota"></div>
-                </div>
-
-                <!-- 9. Configurações API (Cofre da Empresa) -->
-                <div id="view-config" class="view-content hidden-view">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border max-w-2xl">
-                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class='bx bx-shield-quarter text-amber-500'></i> Cofre de Integrações (APIs Ocultas)</h3>
-                        <div class="space-y-4">
-                            <div class="bg-slate-50 p-4 border rounded-lg border-l-4 border-l-purple-500">
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Cérebro IA (Google Gemini)</label>
-                                <p class="text-[10px] text-slate-500 mb-2">Responsável por redigir as abordagens comerciais no módulo Vendas no Percurso.</p>
-                                <input type="password" id="gemini-key" placeholder="AIzaSy..." class="w-full p-2.5 border rounded-md font-mono text-sm outline-none focus:border-purple-500">
-                            </div>
-                            <div class="bg-slate-50 p-4 border rounded-lg border-l-4 border-l-blue-500">
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Satélite (Google Maps & Places)</label>
-                                <p class="text-[10px] text-slate-500 mb-2">Necessário para traçar rotas, rastrear a frota e buscar clientes no radar.</p>
-                                <input type="password" id="maps-key" placeholder="AIzaSy..." class="w-full p-2.5 border rounded-md font-mono text-sm outline-none focus:border-blue-500">
-                            </div>
-                            
-                            <div class="bg-slate-50 p-4 border rounded-lg border-l-4 border-l-cyan-500">
-                                <div class="flex justify-between items-start mb-1">
-                                    <label class="block text-xs font-bold text-slate-700 uppercase">Armazenamento de Recibos (Cloudinary)</label>
-                                    <span class="bg-cyan-100 text-cyan-800 text-[10px] font-bold px-2 py-0.5 rounded border border-cyan-200" title="Consumo acumulado do plano gratuito">
-                                        Tráfego da Nuvem: <span id="cloud-bytes-display">0.00 MB</span>
-                                    </span>
-                                </div>
-                                <p class="text-[10px] text-slate-500 mb-2">Configuração nativa para os motoristas enviarem fotos sem precisar de app externo.</p>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <input type="text" id="cloud-name" placeholder="Cloud Name (ex: dtxyabc...)" class="w-full p-2.5 border rounded-md font-mono text-sm outline-none focus:border-cyan-500">
-                                    <input type="password" id="upload-preset" placeholder="Upload Preset (ex: aed_uploads)" class="w-full p-2.5 border rounded-md font-mono text-sm outline-none focus:border-cyan-500">
-                                </div>
-                            </div>
-
-                            <button onclick="salvarConfig()" class="bg-slate-900 text-white px-6 py-3 rounded-lg font-bold w-full hover:bg-black transition shadow-md flex justify-center items-center gap-2">
-                                <i class='bx bx-save'></i> Gravar Chaves no Banco de Dados
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </main>
@@ -641,16 +610,7 @@
                     CLOUDINARY_CLOUD_NAME = cfgs.cloud_name || "";
                     CLOUDINARY_UPLOAD_PRESET = cfgs.upload_preset || "";
                     CLOUDINARY_BYTES_USED = cfgs.cloudinary_bytes_used || 0;
-
-                    if(document.getElementById('gemini-key')) document.getElementById('gemini-key').value = GEMINI_API_KEY;
-                    if(document.getElementById('maps-key')) document.getElementById('maps-key').value = GOOGLE_MAPS_KEY;
-                    if(document.getElementById('cloud-name')) document.getElementById('cloud-name').value = CLOUDINARY_CLOUD_NAME;
-                    if(document.getElementById('upload-preset')) document.getElementById('upload-preset').value = CLOUDINARY_UPLOAD_PRESET;
                     
-                    if(document.getElementById('cloud-bytes-display')) {
-                        document.getElementById('cloud-bytes-display').innerText = (CLOUDINARY_BYTES_USED / (1024 * 1024)).toFixed(2) + ' MB';
-                    }
-
                     if(GOOGLE_MAPS_KEY && !mapsLoaded) loadGoogleMapsScript();
                 }
             });
@@ -900,19 +860,6 @@
         };
 
         window.excluir = (p, id) => { if(confirm("Excluir este registo permanentemente?")) db.ref(`${DB_ROOT}/${p}/${id}`).remove(); };
-        
-        window.salvarConfig = () => {
-            const mk = document.getElementById('maps-key').value;
-            db.ref(`${DB_ROOT}/config`).update({ 
-                gemini_key: document.getElementById('gemini-key').value, 
-                maps_key: mk,
-                cloud_name: document.getElementById('cloud-name').value,
-                upload_preset: document.getElementById('upload-preset').value
-            }).then(() => { 
-                alert("As chaves da empresa foram salvas no cofre de dados."); 
-                if(mk) loadGoogleMapsScript(); 
-            }); 
-        };
 
         // --- F. APP MOBILE DO MOTORISTA (100% AUTOMÁTICO E BLINDADO) ---
         let watchId = null; let veiculoDoRomaneio = null; let listenerCargasMotorista = null;
