@@ -94,7 +94,7 @@
                     <i class='bx bxs-dashboard text-xl'></i> <span class="font-semibold text-sm">Dashboard</span>
                 </button>
                 <button onclick="nav('cargas')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" data-target="cargas">
-                    <i class='bx bx-package text-xl'></i> <span class="font-semibold text-sm">Gestão de Cargas</span>
+                    <i class='bx bx-package text-xl'></i> <span class="font-semibold text-sm">Romaneios / Cargas</span>
                 </button>
                 <button onclick="nav('clientes')" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" data-target="clientes">
                     <i class='bx bxs-group text-xl'></i> <span class="font-semibold text-sm">Lojas & Clientes</span>
@@ -158,14 +158,14 @@
                             <h3 class="text-2xl font-black text-slate-800" id="dash-cargas">0</h3>
                         </div>
                         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-green-600">
-                            <p class="text-xs text-slate-500 font-bold uppercase">GPS Ativos</p>
+                            <p class="text-xs text-slate-500 font-bold uppercase">Veículos em Rota (GPS)</p>
                             <h3 class="text-2xl font-black text-slate-800" id="dash-gps-ativos">0</h3>
                         </div>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center py-12">
                         <i class='bx bx-cube-alt text-6xl text-red-100 mb-4'></i>
                         <h3 class="text-xl font-black text-slate-800">Centro de Comando Logístico AED</h3>
-                        <p class="text-slate-500 text-sm mt-1">Gestão de frota, motoristas, mercadorias e prospecção.</p>
+                        <p class="text-slate-500 text-sm mt-1">Gestão de frota, despachos de romaneios reais e prospecção.</p>
                     </div>
                 </div>
 
@@ -173,17 +173,17 @@
                 <div id="view-cargas" class="view-content hidden-view space-y-4">
                     <div class="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center gap-4">
                         <div>
-                            <h3 class="font-bold text-slate-800">Controle de Expedição</h3>
-                            <p class="text-xs text-slate-500">Vincule Notas Fiscais (NFe) e Mercadorias aos veículos da frota.</p>
+                            <h3 class="font-bold text-slate-800">Despacho de Cargas (Romaneios)</h3>
+                            <p class="text-xs text-slate-500">Amarre um Veículo a um Motorista para autorizar a entrega de mercadorias.</p>
                         </div>
                         <button onclick="abrirModalCarga()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
-                            <i class='bx bx-plus'></i> Despachar Nova Carga
+                            <i class='bx bx-package'></i> Gerar Romaneio de Carga
                         </button>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
                         <table class="w-full text-left text-sm min-w-[800px]">
-                            <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-xs">
-                                <tr><th class="p-4">Data/Status</th><th class="p-4">Veículo</th><th class="p-4">Destino/Loja</th><th class="p-4">NFe & Mercadoria</th><th class="p-4 text-center">Ações</th></tr>
+                            <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-xs border-b">
+                                <tr><th class="p-4">Data/Status</th><th class="p-4">Alocação Logística</th><th class="p-4">Destino/Loja</th><th class="p-4">NFe & Mercadoria</th><th class="p-4 text-center">Ações</th></tr>
                             </thead>
                             <tbody id="lista-cargas" class="divide-y divide-slate-100"></tbody>
                         </table>
@@ -205,7 +205,7 @@
                     </div>
                     <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
                         <table class="w-full text-left text-sm min-w-[600px]">
-                            <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-xs">
+                            <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-xs border-b">
                                 <tr><th class="p-4">Franquia / Loja</th><th class="p-4">Telefone</th><th class="p-4">Cidade/UF</th><th class="p-4 text-center">Ações</th></tr>
                             </thead>
                             <tbody id="lista-clientes" class="divide-y divide-slate-100"></tbody>
@@ -218,10 +218,10 @@
                     <div class="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center gap-4">
                         <div>
                             <h3 class="font-bold text-slate-800">Quadro de Funcionários</h3>
-                            <p class="text-xs text-slate-500">Adicione funcionários e crie os seus acessos ao sistema.</p>
+                            <p class="text-xs text-slate-500">Crie os acessos restritos da sua equipe de motoristas e montadores.</p>
                         </div>
                         <button onclick="abrirModal('modal-equipe')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
-                            <i class='bx bx-plus'></i> Novo Funcionário / Acesso
+                            <i class='bx bx-plus'></i> Novo Funcionário
                         </button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="lista-equipe"></div>
@@ -238,8 +238,8 @@
                 <!-- Rastreio Global (Google Maps) -->
                 <div id="view-rastreio" class="view-content hidden-view h-full flex flex-col min-h-[500px]">
                     <div class="bg-slate-900 text-white p-3 rounded-t-xl font-bold flex justify-between items-center">
-                        <span class="flex items-center gap-2"><i class='bx bx-satellite text-red-500'></i> GPS Global da Frota</span>
-                        <span class="text-xs bg-green-500 px-2 py-1 rounded text-white animate-pulse">Monitorando</span>
+                        <span class="flex items-center gap-2"><i class='bx bx-satellite text-red-500'></i> GPS Global de Rastreamento Automático</span>
+                        <span class="text-xs bg-green-500 px-2 py-1 rounded text-white animate-pulse">Monitorando Frota em Rota</span>
                     </div>
                     <div class="flex-grow bg-slate-200 border-x border-b border-slate-300 rounded-b-xl relative p-1">
                         <div id="map-rastreio" class="w-full h-full rounded-lg"></div>
@@ -255,7 +255,7 @@
                     <div class="flex flex-col lg:flex-row gap-4 h-full">
                         <div class="w-full lg:w-7/12 flex flex-col gap-4 h-full">
                             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                                <h3 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class='bx bx-trip text-lg text-red-600'></i> Mapear Rota</h3>
+                                <h3 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class='bx bx-trip text-lg text-red-600'></i> Planejar Rota e Buscar Clientes</h3>
                                 <div class="grid grid-cols-2 gap-3 mb-3">
                                     <input type="text" id="origem-rota" placeholder="Origem (Ex: São Gotardo, MG)" class="w-full p-2 border rounded text-sm outline-none">
                                     <input type="text" id="destino-rota" placeholder="Destino (Ex: Alto Rio Doce, MG)" class="w-full p-2 border rounded text-sm outline-none">
@@ -264,7 +264,7 @@
                                     <input type="text" id="termo-busca" value="Mercadão dos Óculos" placeholder="Buscar por..." class="w-full p-2 border rounded text-sm font-bold text-amber-600">
                                 </div>
                                 <button onclick="analisarRotaReal()" id="btn-analisar-rota" class="w-full bg-slate-900 hover:bg-black transition text-white px-4 py-2 rounded-lg font-bold shadow-md flex justify-center items-center gap-2">
-                                    <i class='bx bx-radar text-amber-500'></i> Escanear Caminho
+                                    <i class='bx bx-radar text-amber-500'></i> Escanear Estradas
                                 </button>
                             </div>
                             <div class="bg-slate-200 p-1 rounded-xl border flex-grow relative min-h-[300px]">
@@ -273,7 +273,7 @@
                         </div>
                         <div class="w-full lg:w-5/12 bg-white rounded-xl shadow-sm border flex flex-col h-full">
                             <div class="p-3 bg-slate-50 border-b flex justify-between items-center">
-                                <h3 class="font-bold text-slate-700"><i class='bx bxs-store text-red-600'></i> Lojas na Rota</h3>
+                                <h3 class="font-bold text-slate-700"><i class='bx bxs-store text-red-600'></i> Lojas Identificadas</h3>
                                 <span id="badge-places" class="bg-red-100 text-red-800 text-xs font-bold px-2 rounded-full hidden">0</span>
                             </div>
                             <div id="lista-prospeccao" class="p-3 flex-grow overflow-y-auto space-y-3">
@@ -286,17 +286,17 @@
                 <!-- Configurações API -->
                 <div id="view-config" class="view-content hidden-view">
                     <div class="bg-white p-6 rounded-xl shadow-sm border max-w-2xl">
-                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class='bx bx-shield-quarter text-amber-500'></i> Integrações API</h3>
+                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class='bx bx-shield-quarter text-amber-500'></i> Integrações de Servidor (APIs)</h3>
                         <div class="space-y-4">
                             <div class="bg-slate-50 p-4 border rounded-lg">
                                 <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Google Gemini (IA de Vendas)</label>
                                 <input type="password" id="gemini-key" placeholder="AIzaSy..." class="w-full p-2 border rounded font-mono text-sm">
                             </div>
                             <div class="bg-slate-50 p-4 border rounded-lg">
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Google Maps (Rotas e Radar)</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Google Maps (Rotas, Radar e Rastreamento de Frota)</label>
                                 <input type="password" id="maps-key" placeholder="AIzaSy..." class="w-full p-2 border rounded font-mono text-sm">
                             </div>
-                            <button onclick="salvarConfig()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold w-full hover:bg-red-700 transition">Salvar Chaves</button>
+                            <button onclick="salvarConfig()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold w-full hover:bg-red-700 transition">Salvar Chaves no Cofre AED</button>
                         </div>
                     </div>
                 </div>
@@ -304,42 +304,46 @@
         </main>
     </div>
 
-    <!-- ================= 4. APP MOBILE MOTORISTA (GPS E ENTREGAS) ================= -->
+    <!-- ================= 4. APP MOBILE MOTORISTA (GPS E ROMANEIOS STRICT) ================= -->
     <div id="motorista-view" class="hidden-view h-full flex flex-col bg-slate-900 text-white absolute inset-0 z-[60] overflow-y-auto">
         <div class="p-6 flex justify-between items-center border-b border-slate-800 flex-shrink-0">
             <div>
-                <h2 class="font-black text-2xl text-red-500 tracking-tight">AED Logística</h2>
-                <p class="text-xs text-slate-400" id="mot-nome-display">Painel do Funcionário</p>
+                <h2 class="font-black text-2xl text-red-500 tracking-tight">AED Mobile</h2>
+                <p class="text-xs text-slate-400">Olá, <span id="mot-nome-display" class="font-bold text-white">Motorista</span></p>
             </div>
-            <button onclick="fazerLogout()" class="text-slate-400 hover:text-white p-2"><i class='bx bx-log-out text-2xl'></i></button>
+            <button onclick="fazerLogout()" class="text-slate-400 hover:text-white bg-slate-800 p-2 rounded-lg border border-slate-700"><i class='bx bx-log-out text-xl'></i> Sair</button>
         </div>
         
         <div class="flex-grow p-6 flex flex-col items-center">
             
-            <div class="w-full max-w-sm mb-8 text-center">
-                <label class="block text-sm font-bold text-slate-400 mb-2 uppercase">Selecione o Veículo</label>
-                <select id="motorista-veiculo" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-xl text-white font-bold text-lg outline-none text-center appearance-none focus:ring-2 focus:ring-red-500">
-                    <option value="">Carregando frota...</option>
-                </select>
+            <!-- STATUS DO ROMANEIO DA VERDADE ABSOLUTA -->
+            <div id="status-escala" class="w-full max-w-sm mb-6 text-center bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg">
+                <i class='bx bx-loader-alt bx-spin text-3xl text-amber-500 mb-2'></i>
+                <p class="text-sm text-slate-300 font-bold uppercase tracking-wider">Verificando Escala de Cargas...</p>
             </div>
 
+            <!-- Botão GPS (Só liga se tiver carga escalada) -->
             <div class="relative w-48 h-48 flex items-center justify-center mb-8 flex-shrink-0">
                 <div id="gps-pulse" class="absolute inset-0 rounded-full bg-red-600 hidden"></div>
-                <button id="btn-toggle-gps" onclick="toggleGPS()" class="w-40 h-40 bg-slate-800 hover:bg-slate-700 border-4 border-slate-700 rounded-full flex flex-col items-center justify-center transition-all shadow-2xl relative z-10" disabled>
+                <button id="btn-toggle-gps" onclick="toggleGPS()" class="w-40 h-40 bg-slate-800 border-4 border-slate-700 rounded-full flex flex-col items-center justify-center transition-all shadow-2xl relative z-10" disabled>
                     <i id="gps-icon" class='bx bx-navigation text-5xl text-slate-500 mb-2'></i>
-                    <span id="gps-text" class="font-black text-slate-500 uppercase tracking-widest text-sm">AGUARDANDO</span>
+                    <span id="gps-text" class="font-black text-slate-500 uppercase tracking-widest text-sm text-center px-2">SEM ROTA</span>
                 </button>
             </div>
-            <p id="gps-status-msg" class="text-sm text-slate-400 text-center px-4 mb-8">Selecione o veículo acima para iniciar a rota e ver as cargas.</p>
+            
+            <p id="gps-status-msg" class="text-sm text-slate-400 text-center px-4 mb-6">Aguardando liberação do Gestor.</p>
 
-            <!-- Lista de Cargas do Motorista -->
+            <!-- Lista de Cargas Amarradas a Este Motorista -->
             <div id="motorista-cargas-container" class="w-full max-w-sm hidden">
-                <div class="flex items-center gap-2 mb-4 border-b border-slate-700 pb-2">
-                    <i class='bx bx-package text-amber-500 text-xl'></i>
-                    <h3 class="font-bold text-slate-200 uppercase tracking-wide">Minhas Entregas Hoje</h3>
+                <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-2">
+                    <div class="flex items-center gap-2">
+                        <i class='bx bx-package text-amber-500 text-xl'></i>
+                        <h3 class="font-bold text-slate-200 uppercase tracking-wide">Meu Romaneio</h3>
+                    </div>
+                    <span class="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-bold">HOJE</span>
                 </div>
-                <div id="motorista-lista-cargas" class="space-y-4">
-                    <!-- Preenchido via JS -->
+                <div id="motorista-lista-cargas" class="space-y-4 pb-10">
+                    <!-- Preenchido via JS (Verdade Absoluta) -->
                 </div>
             </div>
 
@@ -348,7 +352,7 @@
 
     <!-- ================= 5. MODAIS CRUD, IA E CARGAS ================= -->
     
-    <!-- Modal Equipe / RH (Com criação de Login) -->
+    <!-- Modal Equipe / RH (Criação de Acessos Mobile) -->
     <div id="modal-equipe" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="p-4 border-b flex justify-between items-center bg-slate-50 flex-shrink-0">
@@ -356,56 +360,62 @@
                 <button onclick="fecharModal('modal-equipe')" class="text-slate-400 hover:text-red-500"><i class='bx bx-x text-2xl'></i></button>
             </div>
             <form id="form-equipe" class="p-6 space-y-4 overflow-y-auto">
-                <p class="text-xs text-slate-500 mb-2">Preencha os dados e crie o acesso deste funcionário ao App Mobile.</p>
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 rounded text-xs text-blue-800">
+                    <b>Nota de Arquitetura:</b> Ao preencher este formulário, o sistema gera automaticamente uma conta de acesso restrito (Mobile App) para este funcionário, sem desconectar o Gestor.
+                </div>
                 
                 <input type="text" id="eq-nome" placeholder="Nome Completo" required class="w-full p-2.5 border rounded-lg bg-slate-50 outline-none focus:ring-1 focus:ring-red-500">
                 
                 <select id="eq-cargo" class="w-full p-2.5 border rounded-lg bg-slate-50 outline-none focus:ring-1 focus:ring-red-500">
-                    <option value="motorista">Motorista de Entrega</option>
-                    <option value="montador">Montador de Móveis</option>
-                    <option value="marceneiro">Marceneiro (Fábrica)</option>
+                    <option value="motorista">Motorista de Frota / Entrega</option>
+                    <option value="montador">Montador de Móveis / Auxiliar</option>
+                    <option value="marceneiro">Marceneiro (Base / Fábrica)</option>
                 </select>
 
                 <div class="border-t border-slate-200 pt-4 mt-2">
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-2"><i class='bx bxs-key text-amber-500'></i> Credenciais de Acesso (App)</label>
-                    <input type="email" id="eq-email" placeholder="E-mail de Login (ex: joao@aed.com)" required class="w-full p-2.5 border rounded-lg bg-slate-50 outline-none focus:ring-1 focus:ring-red-500 mb-3">
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-2"><i class='bx bxs-key text-amber-500'></i> Definição de Acesso Mobile</label>
+                    <input type="email" id="eq-email" placeholder="E-mail de Login (ex: motorista1@aed.com)" required class="w-full p-2.5 border rounded-lg bg-slate-50 outline-none focus:ring-1 focus:ring-red-500 mb-3">
                     <input type="text" id="eq-senha" placeholder="Senha Inicial (Mín. 6 caracteres)" required minlength="6" class="w-full p-2.5 border rounded-lg bg-slate-50 outline-none focus:ring-1 focus:ring-red-500">
                 </div>
 
-                <button type="submit" id="btn-salvar-equipe" class="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg font-bold transition shadow-md">Salvar e Criar Acesso</button>
+                <button type="submit" id="btn-salvar-equipe" class="w-full bg-slate-900 hover:bg-black text-white p-3 rounded-lg font-bold transition shadow-md flex justify-center items-center gap-2">
+                    <i class='bx bx-save'></i> Registrar e Criar Acesso
+                </button>
             </form>
         </div>
     </div>
 
-    <!-- Modal Carga -->
+    <!-- Modal Carga (A Verdade Logística) -->
     <div id="modal-carga" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="p-4 border-b flex justify-between items-center bg-slate-50 flex-shrink-0">
-                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class='bx bx-package text-red-600'></i> Despachar Carga</h3>
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class='bx bx-package text-red-600'></i> Emitir Romaneio de Viagem</h3>
                 <button onclick="fecharModal('modal-carga')" class="text-slate-400 hover:text-red-500"><i class='bx bx-x text-2xl'></i></button>
             </div>
             <form id="form-carga" class="p-6 space-y-4 overflow-y-auto">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Vincular Veículo</label>
-                    <select id="carga-veiculo" required class="w-full p-2 border rounded bg-slate-50 text-sm outline-none focus:ring-1 focus:ring-red-500">
-                        <option value="">Carregando frota...</option>
-                    </select>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Veículo (Frota)</label>
+                        <select id="carga-veiculo" required class="w-full p-2.5 border rounded-lg bg-slate-50 text-sm outline-none focus:ring-1 focus:ring-red-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Motorista (Responsável)</label>
+                        <select id="carga-motorista" required class="w-full p-2.5 border rounded-lg bg-slate-50 text-sm outline-none focus:ring-1 focus:ring-red-500"></select>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Destino (Loja/Franquia)</label>
-                    <select id="carga-cliente" required class="w-full p-2 border rounded bg-slate-50 text-sm outline-none focus:ring-1 focus:ring-red-500">
-                        <option value="">Carregando clientes...</option>
-                    </select>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Destino (Loja / Cliente)</label>
+                    <select id="carga-cliente" required class="w-full p-2.5 border rounded-lg bg-slate-50 text-sm outline-none focus:ring-1 focus:ring-red-500"></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Documentos (NFe)</label>
-                    <input type="text" id="carga-nfe" placeholder="Ex: NFe 1234, NFe 1235" required class="w-full p-2 border rounded text-sm outline-none focus:ring-1 focus:ring-red-500">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nº Notas Fiscais (NFe)</label>
+                    <input type="text" id="carga-nfe" placeholder="Ex: NFe 1234, 1235..." required class="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-red-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mercadorias</label>
-                    <textarea id="carga-desc" placeholder="Ex: 2 Balcões, 1 Painel..." rows="3" required class="w-full p-2 border rounded text-sm resize-none outline-none focus:ring-1 focus:ring-red-500"></textarea>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descrição do Romaneio</label>
+                    <textarea id="carga-desc" placeholder="Ex: 2 Balcões de Atendimento, MDF Amadeirado..." rows="3" required class="w-full p-2.5 border rounded-lg text-sm resize-none outline-none focus:ring-1 focus:ring-red-500"></textarea>
                 </div>
-                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded font-bold shadow-md transition">Confirmar Despacho</button>
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg font-bold shadow-md transition">Confirmar e Notificar Motorista</button>
             </form>
         </div>
     </div>
@@ -414,15 +424,15 @@
     <div id="modal-cliente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl w-full max-w-lg shadow-2xl">
             <div class="p-4 border-b flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-lg">Cadastrar Loja</h3><button onclick="fecharModal('modal-cliente')" class="text-red-500"><i class='bx bx-x text-2xl'></i></button>
+                <h3 class="font-bold text-lg">Cadastrar Franquia/Loja</h3><button onclick="fecharModal('modal-cliente')" class="text-red-500"><i class='bx bx-x text-2xl'></i></button>
             </div>
             <form id="form-cliente" class="p-6 space-y-4">
-                <input type="text" id="cli-nome" placeholder="Nome da Loja" required class="w-full p-2.5 border rounded-lg bg-slate-50">
+                <input type="text" id="cli-nome" placeholder="Nome da Loja/Franquia" required class="w-full p-2.5 border rounded-lg bg-slate-50">
                 <div class="flex gap-4">
-                    <input type="text" id="cli-tel" placeholder="WhatsApp" required class="w-1/2 p-2.5 border rounded-lg bg-slate-50">
+                    <input type="text" id="cli-tel" placeholder="WhatsApp (DDD+Num)" required class="w-1/2 p-2.5 border rounded-lg bg-slate-50">
                     <input type="text" id="cli-cidade" placeholder="Cidade - UF" required class="w-1/2 p-2.5 border rounded-lg bg-slate-50">
                 </div>
-                <button type="submit" class="w-full bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-700">Salvar Loja</button>
+                <button type="submit" class="w-full bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-700">Salvar Base</button>
             </form>
         </div>
     </div>
@@ -431,31 +441,31 @@
     <div id="modal-frota" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl w-full max-w-md shadow-2xl">
             <div class="p-4 border-b flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-lg">Cadastrar Veículo</h3><button onclick="fecharModal('modal-frota')" class="text-red-500"><i class='bx bx-x text-2xl'></i></button>
+                <h3 class="font-bold text-lg">Cadastrar Veículo Logístico</h3><button onclick="fecharModal('modal-frota')" class="text-red-500"><i class='bx bx-x text-2xl'></i></button>
             </div>
             <form id="form-frota" class="p-6 space-y-4">
-                <input type="text" id="fr-placa" placeholder="Placa (Ex: ABC-1234)" required class="w-full p-2.5 border rounded-lg uppercase bg-slate-50">
-                <input type="text" id="fr-modelo" placeholder="Modelo (Ex: Iveco Daily)" required class="w-full p-2.5 border rounded-lg bg-slate-50">
-                <button type="submit" class="w-full bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-700">Salvar Veículo</button>
+                <input type="text" id="fr-placa" placeholder="Placa Padrão (Ex: ABC-1234)" required class="w-full p-2.5 border rounded-lg uppercase bg-slate-50">
+                <input type="text" id="fr-modelo" placeholder="Modelo do Caminhão (Ex: Iveco Daily 35s14)" required class="w-full p-2.5 border rounded-lg bg-slate-50">
+                <button type="submit" class="w-full bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-700">Adicionar à Frota</button>
             </form>
         </div>
     </div>
 
-    <!-- Modal IA -->
+    <!-- Modal IA Prospecção -->
     <div id="modal-ia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
             <div class="bg-slate-900 p-4 text-white flex justify-between items-center border-b-4 border-red-600">
-                <h3 class="font-bold flex items-center gap-2"><i class='bx bx-brain text-red-500'></i> IA de Vendas - AED</h3>
+                <h3 class="font-bold flex items-center gap-2"><i class='bx bx-brain text-red-500'></i> Vendedor IA - AED</h3>
                 <button onclick="fecharModal('modal-ia')" class="text-white hover:text-red-500"><i class='bx bx-x text-2xl'></i></button>
             </div>
             <div class="p-6">
                 <div class="bg-slate-50 p-3 rounded-lg mb-3 border border-slate-200">
-                    <p id="ia-store-name" class="font-bold text-sm text-slate-800">Loja</p>
-                    <input type="text" id="ia-store-phone" placeholder="Digite o WhatsApp da Loja" class="w-full mt-2 p-2 text-sm border rounded focus:ring-1 focus:ring-red-500 outline-none">
+                    <p id="ia-store-name" class="font-bold text-sm text-slate-800">Loja Alvo</p>
+                    <input type="text" id="ia-store-phone" placeholder="Validar WhatsApp da Loja" class="w-full mt-2 p-2 text-sm border rounded focus:ring-1 focus:ring-red-500 outline-none">
                 </div>
                 <select id="ia-contexto" class="w-full p-2.5 mb-3 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-red-500 bg-slate-50">
-                    <option value="manutencao">Oferecer Manutenção Preventiva</option>
-                    <option value="apresentacao">Apresentar AED (Fornecedor Homologado)</option>
+                    <option value="manutencao">Oferecer Manutenção Preventiva Gratuita</option>
+                    <option value="apresentacao">Apresentar Portfólio AED (Homologados ABF)</option>
                 </select>
                 <div class="relative">
                     <textarea id="ia-texto" class="w-full h-40 p-3 border rounded-lg text-sm resize-none outline-none focus:ring-1 focus:ring-red-500"></textarea>
@@ -464,14 +474,14 @@
                     </div>
                 </div>
                 <div class="mt-4 flex gap-3">
-                    <button onclick="gerarTextoIA()" class="flex-1 border border-slate-300 hover:bg-slate-50 py-2.5 text-sm font-bold rounded-lg transition">Regerar</button>
+                    <button onclick="gerarTextoIA()" class="flex-1 border border-slate-300 hover:bg-slate-50 py-2.5 text-sm font-bold rounded-lg transition">Regerar Pitch</button>
                     <button onclick="enviarWpp()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 text-sm font-bold rounded-lg flex justify-center gap-2 items-center transition shadow-md"><i class='bx bxl-whatsapp text-xl'></i> Enviar Zap</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ================= 6. JAVASCRIPT PRINCIPAL ================= -->
+    <!-- ================= 6. JAVASCRIPT PRINCIPAL (LÓGICA BLINDADA) ================= -->
     <script>
         // --- A. FIREBASE INIT (Suas chaves reais) ---
         const firebaseConfig = {
@@ -488,11 +498,11 @@
         const db = firebase.database();
         const auth = firebase.auth();
 
-        // O TRUQUE DE MESTRE: App Secundário para o Admin criar contas sem ser deslogado!
+        // O TRUQUE DE ARQUITETURA SÊNIOR: App Secundário para o RH criar contas de funcionários sem deslogar o Gestor ativo.
         const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
         const secondaryAuth = secondaryApp.auth();
 
-        // NÓ CENTRAL (A Verdade Absoluta: todos os dados da empresa ficam aqui)
+        // NÓ CENTRAL (A Verdade Absoluta: toda a informação logística da empresa)
         const AED_DB = 'aed_data_empresa'; 
 
         // --- B. VARIÁVEIS GLOBAIS ---
@@ -500,29 +510,30 @@
         let currentUserRole = null;
         let GEMINI_API_KEY = "";
         let GOOGLE_MAPS_KEY = "";
+        
         let mapsLoaded = false;
         let mapRastreioObj = null, mapRotaObj = null;
         let directionsService = null, directionsRenderer = null, placesService = null;
         let activePlaceDetails = null;
 
-        // --- C. AUTENTICAÇÃO PURA (Sem botão de registrar) ---
+        // --- C. AUTENTICAÇÃO CORPORATIVA ---
         document.getElementById('login-form').onsubmit = async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-pass').value;
             const errorMsg = document.getElementById('login-error');
-            errorMsg.innerText = "Autenticando...";
+            errorMsg.innerText = "Autenticando credenciais...";
 
             try {
                 const cred = await auth.signInWithEmailAndPassword(email, pass);
                 const snap = await db.ref(`users_roles/${cred.user.uid}`).once('value');
-                // Se for a sua primeira vez logando (admin originário), você vira 'gestor'
+                // Controle Rígido de Acesso: Se não tem 'role' salva (o primeiro admin do firebase), vira Gestor master.
                 const role = snap.exists() ? snap.val().role : 'gestor';
                 if(!snap.exists()) await db.ref(`users_roles/${cred.user.uid}`).set({ email: email, role: 'gestor' });
                 
                 rotearUsuario(cred.user, role);
             } catch (err) {
-                errorMsg.innerText = "Erro: Email ou senha incorretos.";
+                errorMsg.innerText = "Acesso Negado: Credenciais incorretas ou inativas.";
             }
         };
 
@@ -542,12 +553,12 @@
             document.getElementById('login-view').classList.add('hidden-view');
 
             if(role === 'motorista' || role === 'montador') {
-                // TELA DO APP MOBILE
+                // ROTA MOBILE: Oculta painel administrativo e injeta a lógica de romaneio automático.
                 document.getElementById('motorista-view').classList.remove('hidden-view');
                 document.getElementById('mot-nome-display').innerText = user.email.split('@')[0];
-                iniciarAppMotorista();
+                iniciarArquiteturaMotorista(); // Chama a nova função rigorosa
             } else {
-                // TELA DO GESTOR / ADMIN
+                // ROTA ADMIN: Abre o ERP completo.
                 document.getElementById('admin-view').classList.remove('hidden-view');
                 document.getElementById('user-display').innerText = user.email.split('@')[0];
                 carregarDadosAdmin();
@@ -575,8 +586,9 @@
         function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
         function fecharModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
 
-        // --- E. BANCO DE DADOS - ADMIN CRUD & CRIAÇÃO DE USUÁRIOS ---
+        // --- E. BANCO DE DADOS - ADMIN CRUD & GESTÃO DA EMPRESA ---
         function carregarDadosAdmin() {
+            // Chaves do Cofre
             db.ref(`${AED_DB}/config`).on('value', snap => {
                 if(snap.exists()) {
                     GEMINI_API_KEY = snap.val().gemini_key || "";
@@ -587,37 +599,41 @@
                 }
             });
 
+            // Lojas e Clientes
             db.ref(`${AED_DB}/clientes`).on('value', snap => {
                 const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
                 document.getElementById('dash-clientes').innerText = dados.length;
                 document.getElementById('lista-clientes').innerHTML = dados.map(c => `
-                    <tr class="border-b"><td class="p-4 font-bold">${c.nome}</td><td class="p-4">${c.tel}</td><td class="p-4">${c.cid}</td><td class="p-4 text-center"><button onclick="excluir('clientes','${c.id}')" class="text-red-500 hover:text-red-700 transition"><i class='bx bx-trash text-lg'></i></button></td></tr>
+                    <tr class="border-b hover:bg-slate-50"><td class="p-4 font-bold text-slate-800">${c.nome}</td><td class="p-4 text-slate-600">${c.tel}</td><td class="p-4 text-slate-600">${c.cid}</td><td class="p-4 text-center"><button onclick="excluir('clientes','${c.id}')" class="text-red-400 hover:text-red-700 transition"><i class='bx bx-trash text-xl'></i></button></td></tr>
                 `).join('');
             });
 
+            // Equipe Corporativa
             db.ref(`${AED_DB}/equipe`).on('value', snap => {
                 const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
                 document.getElementById('lista-equipe').innerHTML = dados.map(e => `
-                    <div class="bg-white p-4 border rounded-xl shadow-sm hover:shadow-md transition relative">
-                        <div class="absolute top-0 right-0 bg-slate-100 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-xl text-slate-500 uppercase">${e.cargo}</div>
-                        <h4 class="font-bold text-slate-800 mt-2">${e.nome}</h4>
-                        <p class="text-xs text-slate-500 break-all"><i class='bx bx-envelope'></i> ${e.email}</p>
-                        <button onclick="excluirUser('${e.id}')" class="text-red-500 text-xs mt-3 flex items-center gap-1 font-bold hover:text-red-700"><i class='bx bx-trash'></i> Desativar Acesso</button>
+                    <div class="bg-white p-5 border rounded-xl shadow-sm hover:shadow-md transition relative">
+                        <div class="absolute top-0 right-0 bg-slate-100 text-[10px] font-black px-3 py-1 rounded-bl-lg rounded-tr-xl text-slate-500 uppercase tracking-widest">${e.cargo}</div>
+                        <h4 class="font-black text-slate-800 mt-2 text-lg">${e.nome}</h4>
+                        <p class="text-sm text-slate-500 break-all mb-3"><i class='bx bx-envelope'></i> ${e.email}</p>
+                        <button onclick="excluirUser('${e.id}')" class="w-full bg-red-50 text-red-600 text-xs py-2 rounded-lg font-bold hover:bg-red-100 transition">Desativar Acesso Mobile</button>
                     </div>
                 `).join('');
             });
 
+            // Frota
             db.ref(`${AED_DB}/frota`).on('value', snap => {
                 const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
                 document.getElementById('dash-frota').innerText = dados.length;
                 document.getElementById('lista-frota').innerHTML = dados.map(f => `
-                    <div class="bg-white p-4 border rounded-xl shadow-sm flex justify-between items-center">
-                        <div><h4 class="font-black text-lg text-slate-800">${f.placa}</h4><p class="text-sm text-slate-500">${f.modelo}</p></div>
-                        <button onclick="excluir('frota','${f.id}')" class="text-red-500 text-sm hover:text-red-700 bg-red-50 p-2 rounded-lg"><i class='bx bx-trash'></i></button>
+                    <div class="bg-white p-5 border rounded-xl shadow-sm flex justify-between items-center">
+                        <div><h4 class="font-black text-xl text-slate-800">${f.placa}</h4><p class="text-sm text-slate-500 font-medium">${f.modelo}</p></div>
+                        <button onclick="excluir('frota','${f.id}')" class="text-red-400 hover:text-red-700 bg-red-50 p-3 rounded-xl transition"><i class='bx bx-trash text-xl'></i></button>
                     </div>
                 `).join('');
             });
 
+            // A VERDADE LOGÍSTICA: Gestão de Cargas (Amarrando tudo)
             db.ref(`${AED_DB}/cargas`).on('value', snap => {
                 const dados = []; snap.forEach(c => { dados.push({...c.val(), id: c.key}); });
                 const cargasEmRota = dados.filter(d => d.status === 'Em Rota').length;
@@ -626,30 +642,35 @@
                 document.getElementById('lista-cargas').innerHTML = dados.reverse().map(c => {
                     const dataStr = new Date(c.data).toLocaleDateString('pt-BR');
                     const isEntregue = c.status === 'Entregue';
-                    const statusBadge = isEntregue ? '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold border border-green-200">Entregue</span>' : '<span class="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-bold animate-pulse border border-amber-200">Em Rota</span>';
+                    const statusBadge = isEntregue ? '<span class="bg-green-100 text-green-800 px-2.5 py-1 rounded text-xs font-bold border border-green-200"><i class=\"bx bx-check\"></i> Entregue</span>' : '<span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded text-xs font-bold animate-pulse border border-amber-200"><i class=\"bx bx-loader-alt bx-spin\"></i> Em Rota</span>';
                     
                     return `
-                    <tr class="border-b hover:bg-slate-50">
-                        <td class="p-4"><div class="text-xs text-slate-500 mb-1">${dataStr}</div>${statusBadge}</td>
-                        <td class="p-4 font-bold text-slate-700"><i class='bx bxs-truck text-red-500 mr-1'></i>${c.veiculo}</td>
-                        <td class="p-4 font-semibold text-slate-800">${c.destino}</td>
+                    <tr class="border-b hover:bg-slate-50 transition">
+                        <td class="p-4"><div class="text-xs text-slate-500 font-bold mb-1.5">${dataStr}</div>${statusBadge}</td>
                         <td class="p-4">
-                            <div class="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 inline-block px-2 py-0.5 rounded mb-1">NFe: ${c.nfe}</div>
-                            <div class="text-xs text-slate-500">${c.desc}</div>
+                            <p class="font-black text-slate-800 flex items-center gap-1"><i class='bx bxs-truck text-slate-400'></i> ${c.veiculo}</p>
+                            <p class="text-xs text-blue-600 font-bold uppercase tracking-wide mt-1"><i class='bx bxs-user-badge'></i> ${c.motorista_nome || c.motorista_email}</p>
                         </td>
-                        <td class="p-4 text-center"><button onclick="excluir('cargas','${c.id}')" class="text-red-400 hover:text-red-600"><i class='bx bx-trash text-xl'></i></button></td>
+                        <td class="p-4 font-bold text-slate-700">${c.destino}</td>
+                        <td class="p-4">
+                            <div class="text-xs font-black text-slate-700 bg-slate-100 border border-slate-300 inline-block px-2 py-1 rounded mb-2 shadow-sm"><i class='bx bx-barcode'></i> NFe: ${c.nfe}</div>
+                            <p class="text-xs text-slate-500 leading-tight">${c.desc}</p>
+                        </td>
+                        <td class="p-4 text-center"><button onclick="excluir('cargas','${c.id}')" class="text-red-400 hover:text-red-600 p-2"><i class='bx bx-trash text-xl'></i></button></td>
                     </tr>
                 `}).join('');
             });
 
+            // Mapa de Rastreamento (Escutando os Celulares)
             db.ref(`${AED_DB}/gps_tracking`).on('value', snap => {
                 let countAtivos = 0;
                 if(snap.exists() && mapRastreioObj) {
                     const dadosGps = snap.val();
                     for(const placa in dadosGps) {
+                        // Se o celular do motorista diz que está online e a carga está rolando
                         if(dadosGps[placa].status === 'online') {
                             countAtivos++;
-                            atualizarMarcadorVeiculo(placa, dadosGps[placa].lat, dadosGps[placa].lng);
+                            atualizarMarcadorVeiculo(placa, dadosGps[placa].lat, dadosGps[placa].lng, dadosGps[placa].motorista);
                         } else {
                             if(markersFrota[placa]) { markersFrota[placa].setMap(null); delete markersFrota[placa]; }
                         }
@@ -659,7 +680,7 @@
             });
         }
 
-        // LÓGICA DE CRIAÇÃO DA EQUIPE PELA PORTA DOS FUNDOS (SECUNDARY APP)
+        // ================= LÓGICA DE CRIAÇÃO DE FUNCIONÁRIOS (RH) =================
         document.getElementById('form-equipe').onsubmit = async (e) => { 
             e.preventDefault(); 
             const btn = document.getElementById('btn-salvar-equipe');
@@ -672,50 +693,60 @@
             const senha = document.getElementById('eq-senha').value;
 
             try {
-                // 1. Cria a conta no Firebase Auth (Instância secundária que NÃO desloga o Admin)
+                // Criação na instância Secundária para não derrubar o Gestor Logado
                 const userCred = await secondaryAuth.createUserWithEmailAndPassword(email, senha);
                 const novoUid = userCred.user.uid;
 
-                // 2. Define o papel (role) de acesso deste UID
                 await db.ref(`users_roles/${novoUid}`).set({ email: email, role: cargo });
-
-                // 3. Salva os dados do funcionário na base da AED
                 await db.ref(`${AED_DB}/equipe/${novoUid}`).set({ nome: nome, cargo: cargo, email: email });
 
-                // 4. Limpa a instância secundária
                 await secondaryAuth.signOut();
 
-                alert("Acesso criado com sucesso! O funcionário já pode entrar no sistema celular.");
+                alert(`Sucesso! O funcionário ${nome} já pode baixar o aplicativo e acessar usando o e-mail: ${email}`);
                 fecharModal('modal-equipe'); 
                 e.target.reset();
             } catch (error) {
-                alert("Falha ao criar acesso: " + error.message);
+                alert("Erro ao criar acesso. Verifique se o e-mail já existe ou se a senha é fraca (mín 6 caracteres).");
             } finally {
-                btn.innerHTML = "Salvar e Criar Acesso";
+                btn.innerHTML = "<i class='bx bx-save'></i> Registrar e Criar Acesso";
                 btn.disabled = false;
             }
         };
 
         window.excluirUser = async (uid) => {
-            if(confirm("ATENÇÃO: Deseja apagar este funcionário e bloquear o acesso dele? (A exclusão de Auth é feita via painel Firebase, mas o acesso será revogado aqui).")) {
+            if(confirm("Revogar definitivamente o acesso deste funcionário ao sistema?")) {
                 await db.ref(`${AED_DB}/equipe/${uid}`).remove();
-                await db.ref(`users_roles/${uid}`).remove(); // Sem a role, ele perde o acesso ao painel motorista
+                await db.ref(`users_roles/${uid}`).remove(); 
             }
         };
 
-        // Outros Forms e Ações
+        // Outros Cadastros Simples
         document.getElementById('form-cliente').onsubmit = (e) => { e.preventDefault(); db.ref(`${AED_DB}/clientes`).push({ nome: document.getElementById('cli-nome').value, tel: document.getElementById('cli-tel').value, cid: document.getElementById('cli-cidade').value }); fecharModal('modal-cliente'); e.target.reset(); };
         document.getElementById('form-frota').onsubmit = (e) => { e.preventDefault(); db.ref(`${AED_DB}/frota`).push({ placa: document.getElementById('fr-placa').value.toUpperCase(), modelo: document.getElementById('fr-modelo').value }); fecharModal('modal-frota'); e.target.reset(); };
 
+        // ================= GERAÇÃO DE ROMANEIO (A MÁGICA LOGÍSTICA) =================
         window.abrirModalCarga = () => {
+            // Puxa a frota
             db.ref(`${AED_DB}/frota`).once('value', snap => {
-                let html = '<option value="">Selecione o Veículo...</option>';
-                if(snap.exists()) snap.forEach(f => { html += `<option value="${f.val().placa}">${f.val().placa} - ${f.val().modelo}</option>`; });
+                let html = '<option value="">1. Qual o Caminhão?</option>';
+                if(snap.exists()) snap.forEach(f => { html += `<option value="${f.val().placa}">${f.val().placa} (${f.val().modelo})</option>`; });
                 document.getElementById('carga-veiculo').innerHTML = html;
             });
+            // Puxa somente os Motoristas da equipe
+            db.ref(`${AED_DB}/equipe`).once('value', snap => {
+                let html = '<option value="">2. Qual o Motorista?</option>';
+                if(snap.exists()) snap.forEach(e => { 
+                    if(e.val().cargo === 'motorista') { // Filtro inteligente
+                        // Salvamos o email no value, e mostramos o nome. Isso vincula a conta de login do app!
+                        html += `<option value="${e.val().email}" data-nome="${e.val().nome}">${e.val().nome}</option>`; 
+                    }
+                });
+                document.getElementById('carga-motorista').innerHTML = html;
+            });
+            // Puxa os clientes
             db.ref(`${AED_DB}/clientes`).once('value', snap => {
-                let html = '<option value="">Selecione a Loja/Destino...</option>';
-                if(snap.exists()) snap.forEach(c => { html += `<option value="${c.val().nome}">${c.val().nome} (${c.val().cid})</option>`; });
+                let html = '<option value="">3. Qual a Loja de Destino?</option>';
+                if(snap.exists()) snap.forEach(c => { html += `<option value="${c.val().nome}">${c.val().nome} - ${c.val().cid}</option>`; });
                 document.getElementById('carga-cliente').innerHTML = html;
             });
             abrirModal('modal-carga');
@@ -723,8 +754,13 @@
 
         document.getElementById('form-carga').onsubmit = (e) => {
             e.preventDefault();
+            const selectMot = document.getElementById('carga-motorista');
+            const motoristaNome = selectMot.options[selectMot.selectedIndex].getAttribute('data-nome');
+
             db.ref(`${AED_DB}/cargas`).push({
                 veiculo: document.getElementById('carga-veiculo').value,
+                motorista_email: document.getElementById('carga-motorista').value,
+                motorista_nome: motoristaNome,
                 destino: document.getElementById('carga-cliente').value,
                 nfe: document.getElementById('carga-nfe').value,
                 desc: document.getElementById('carga-desc').value,
@@ -735,101 +771,121 @@
             e.target.reset();
         };
 
-        window.excluir = (p, id) => { if(confirm("Excluir permanentemente este registro?")) db.ref(`${AED_DB}/${p}/${id}`).remove(); };
+        window.excluir = (p, id) => { if(confirm("Atenção: Confirmar exclusão deste registro?")) db.ref(`${AED_DB}/${p}/${id}`).remove(); };
 
         window.salvarConfig = () => {
             const gk = document.getElementById('gemini-key').value;
             const mk = document.getElementById('maps-key').value;
             db.ref(`${AED_DB}/config`).set({ gemini_key: gk, maps_key: mk }).then(() => {
-                alert("Chaves salvas de forma oculta na base corporativa.");
+                alert("As chaves de API foram sincronizadas ao cofre criptografado da AED.");
                 if(mk) loadGoogleMapsScript();
             });
         };
 
-        // --- F. APP MOTORISTA (LÓGICA GPS E CARGAS) ---
+        // ================= F. APP DO MOTORISTA (BLINDADO E AUTOMÁTICO) =================
         let watchId = null;
-        let veiculoSelecionado = "";
+        let veiculoDoRomaneio = null; // A variável que segura a Verdade Absoluta para o GPS
         let listenerCargasMotorista = null;
 
-        function iniciarAppMotorista() {
-            db.ref(`${AED_DB}/frota`).once('value', snap => {
-                const select = document.getElementById('motorista-veiculo');
-                if(!snap.exists()) { select.innerHTML = "<option>Nenhuma frota cadastrada.</option>"; return; }
-                
-                select.innerHTML = "<option value=''>ESCOLHA O SEU VEÍCULO...</option>";
-                snap.forEach(f => {
-                    const v = f.val();
-                    select.innerHTML += `<option value='${v.placa}'>Placa: ${v.placa} (${v.modelo})</option>`;
-                });
-            });
-
-            document.getElementById('motorista-veiculo').addEventListener('change', (e) => {
-                veiculoSelecionado = e.target.value;
-                const btn = document.getElementById('btn-toggle-gps');
-                const text = document.getElementById('gps-text');
-                const icon = document.getElementById('gps-icon');
-
-                if(veiculoSelecionado) {
-                    btn.disabled = false;
-                    btn.classList.remove('border-slate-700', 'bg-slate-800');
-                    btn.classList.add('border-green-600', 'bg-green-900', 'hover:bg-green-800');
-                    icon.classList.replace('text-slate-500', 'text-green-400');
-                    text.classList.replace('text-slate-500', 'text-green-400');
-                    text.innerText = "LIGAR GPS ROTA";
-                    carregarCargasDoVeiculo(veiculoSelecionado); 
-                } else {
-                    desligarGPS();
-                    document.getElementById('motorista-cargas-container').classList.add('hidden');
-                    btn.disabled = true;
-                    btn.className = "w-40 h-40 bg-slate-800 border-4 border-slate-700 rounded-full flex flex-col items-center justify-center transition-all shadow-2xl relative z-10";
-                    icon.className = "bx bx-navigation text-5xl text-slate-500 mb-2";
-                    text.className = "font-black text-slate-500 uppercase tracking-widest text-sm";
-                    text.innerText = "AGUARDANDO";
-                }
-            });
-        }
-
-        function carregarCargasDoVeiculo(placa) {
-            const container = document.getElementById('motorista-cargas-container');
-            const lista = document.getElementById('motorista-lista-cargas');
+        function iniciarArquiteturaMotorista() {
+            const emailCelular = currentUser.email;
+            const statusDiv = document.getElementById('status-escala');
+            const containerCargas = document.getElementById('motorista-cargas-container');
+            const listaCargas = document.getElementById('motorista-lista-cargas');
             
+            const btnGps = document.getElementById('btn-toggle-gps');
+            const textGps = document.getElementById('gps-text');
+            const iconGps = document.getElementById('gps-icon');
+
+            // Fica escutando se a base mandou alguma carga para o email deste celular
             if(listenerCargasMotorista) db.ref(`${AED_DB}/cargas`).off('value', listenerCargasMotorista);
             
             listenerCargasMotorista = db.ref(`${AED_DB}/cargas`).on('value', snap => {
-                const minhasCargas = [];
+                const meuRomaneio = [];
+                let placaEscalada = null;
+
                 if(snap.exists()) {
                     snap.forEach(c => {
                         const val = c.val();
-                        if(val.veiculo === placa && val.status === 'Em Rota') {
-                            minhasCargas.push({...val, id: c.key});
+                        // Verifica se a carga é dele E se não foi entregue ainda
+                        if(val.motorista_email === emailCelular && val.status === 'Em Rota') {
+                            meuRomaneio.push({...val, id: c.key});
+                            if(!placaEscalada) placaEscalada = val.veiculo; // Pega o caminhão atrelado à carga
                         }
                     });
                 }
-                
-                if(minhasCargas.length > 0) {
-                    container.classList.remove('hidden');
-                    lista.innerHTML = minhasCargas.map(c => `
-                        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-left relative overflow-hidden shadow-lg mt-4">
-                            <div class="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
-                            <p class="text-[10px] text-amber-500 font-black uppercase mb-1 tracking-widest">Local de Descarga</p>
-                            <p class="text-lg font-black text-white mb-2 leading-tight">${c.destino}</p>
-                            <div class="bg-slate-900 p-3 rounded-lg mb-4 border border-slate-700">
-                                <p class="text-xs text-blue-400 font-bold mb-1 border-b border-slate-700 pb-1"><i class='bx bx-receipt'></i> NFe: <span class="text-white">${c.nfe}</span></p>
-                                <p class="text-sm text-slate-300 pt-1">${c.desc}</p>
+
+                if(meuRomaneio.length > 0) {
+                    // O SISTEMA ASSUME O CONTROLE: Ele tem carga!
+                    veiculoDoRomaneio = placaEscalada; // Amarra o GPS ao caminhão do romaneio
+
+                    statusDiv.innerHTML = `
+                        <div class="bg-green-500 text-white rounded-t-lg p-2 font-black tracking-widest text-xs uppercase"><i class='bx bx-check-circle'></i> Romaneio Liberado</div>
+                        <div class="p-3 bg-slate-800 rounded-b-lg">
+                            <p class="text-xs text-slate-400 mb-1">Caminhão Escalado:</p>
+                            <p class="text-2xl font-black text-white tracking-widest bg-slate-900 border border-slate-700 py-2 rounded shadow-inner">${placaEscalada}</p>
+                        </div>
+                    `;
+
+                    // Libera o botão do GPS
+                    btnGps.disabled = false;
+                    if(!watchId) { // Só estiliza se o GPS não estiver rodando já
+                        btnGps.className = "w-40 h-40 bg-blue-900 border-4 border-blue-600 hover:bg-blue-800 rounded-full flex flex-col items-center justify-center transition-all shadow-[0_0_30px_rgba(37,99,235,0.5)] relative z-10 transform hover:scale-105 active:scale-95";
+                        iconGps.className = "bx bx-navigation text-6xl text-white mb-2 drop-shadow-md";
+                        textGps.className = "font-black text-white uppercase tracking-widest text-sm text-center px-2";
+                        textGps.innerText = "INICIAR ROTA\nE LIGAR GPS";
+                    }
+                    
+                    document.getElementById('gps-status-msg').innerHTML = `Toque no botão para avisar o Gestor que a viagem no <b class="text-blue-400">${placaEscalada}</b> começou.`;
+
+                    // Exibe a lista das entregas para ele dar baixa
+                    containerCargas.classList.remove('hidden');
+                    listaCargas.innerHTML = meuRomaneio.map(c => `
+                        <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-left relative overflow-hidden shadow-2xl">
+                            <div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+                            <p class="text-[10px] text-blue-400 font-black uppercase mb-1 tracking-widest">Loja Destino</p>
+                            <p class="text-xl font-black text-white mb-3 leading-tight">${c.destino}</p>
+                            
+                            <div class="bg-slate-900 p-3 rounded-xl mb-4 border border-slate-700">
+                                <p class="text-sm font-black text-white mb-2 pb-2 border-b border-slate-800 flex items-center justify-between">
+                                    <span class="flex items-center gap-1 text-slate-400 font-normal"><i class='bx bx-barcode'></i> NFe:</span> ${c.nfe}
+                                </p>
+                                <p class="text-sm text-slate-300 font-medium leading-relaxed">${c.desc}</p>
                             </div>
-                            <button onclick="motoristaConfirmaEntrega('${c.id}')" class="w-full bg-green-600 hover:bg-green-500 text-white text-sm font-bold py-3.5 rounded-lg flex justify-center items-center gap-2 transition active:scale-95 shadow-lg">
-                                <i class='bx bx-check-circle text-xl'></i> CONFIRMAR ENTREGA
+                            
+                            <button onclick="motoristaConfirmaEntrega('${c.id}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white text-sm font-black tracking-wide py-4 rounded-xl flex justify-center items-center gap-2 transition transform active:scale-95 shadow-lg border border-green-400">
+                                <i class='bx bx-check-double text-2xl drop-shadow'></i> EFETUAR BAIXA NA ENTREGA
                             </button>
                         </div>
                     `).join('');
+
                 } else {
-                    container.classList.add('hidden');
+                    // ELE NÃO TEM CARGA. BLOQUEIA TUDO.
+                    veiculoDoRomaneio = null;
+                    if(watchId) desligarGPS(); // Força desligamento por segurança
+                    
+                    statusDiv.innerHTML = `
+                        <div class="p-6 text-center">
+                            <i class='bx bxs-coffee-alt text-4xl text-slate-500 mb-2'></i>
+                            <p class="text-slate-400 font-bold">Nenhuma entrega no momento.</p>
+                            <p class="text-xs text-slate-500 mt-1">Aguarde o Gestor emitir um Romaneio no seu nome.</p>
+                        </div>
+                    `;
+                    
+                    containerCargas.classList.add('hidden');
+                    
+                    btnGps.disabled = true;
+                    btnGps.className = "w-40 h-40 bg-slate-900 border-4 border-slate-800 rounded-full flex flex-col items-center justify-center transition-all opacity-50 relative z-10";
+                    iconGps.className = "bx bx-navigation text-5xl text-slate-600 mb-2";
+                    textGps.className = "font-black text-slate-600 uppercase tracking-widest text-sm";
+                    textGps.innerText = "BLOQUEADO";
+                    document.getElementById('gps-status-msg').innerHTML = "";
                 }
             });
         }
 
         window.motoristaConfirmaEntrega = (id) => {
-            if(confirm("Tem certeza que finalizou a montagem/entrega desta mercadoria? O gestor será notificado na hora.")) {
+            if(confirm("Confirmar que a montagem/descarga foi finalizada com sucesso? A baixa na NFe será automática no painel do Gestor.")) {
                 db.ref(`${AED_DB}/cargas/${id}/status`).set('Entregue');
             }
         };
@@ -837,8 +893,8 @@
         window.toggleGPS = () => { if(watchId) desligarGPS(); else ligarGPS(); };
 
         function ligarGPS() {
-            if(!navigator.geolocation) { alert("O seu celular não suporta leitura de GPS."); return; }
-            if(!veiculoSelecionado) { alert("Selecione um veículo primeiro!"); return; }
+            if(!navigator.geolocation) { alert("Celular incompatível com leitura de satélite."); return; }
+            if(!veiculoDoRomaneio) { alert("Erro de segurança: Nenhum veículo amarrado ao seu Romaneio."); return; }
 
             const btn = document.getElementById('btn-toggle-gps');
             const icon = document.getElementById('gps-icon');
@@ -846,51 +902,50 @@
             const pulse = document.getElementById('gps-pulse');
             const msg = document.getElementById('gps-status-msg');
 
-            btn.classList.replace('border-green-600', 'border-red-600');
-            btn.classList.replace('bg-green-900', 'bg-red-900');
-            btn.classList.replace('hover:bg-green-800', 'hover:bg-red-800');
-            icon.classList.replace('text-green-400', 'text-white');
-            text.classList.replace('text-green-400', 'text-white');
-            text.innerText = "DESLIGAR GPS";
+            btn.className = "w-40 h-40 bg-red-900 border-4 border-red-600 hover:bg-red-800 rounded-full flex flex-col items-center justify-center transition-all shadow-[0_0_40px_rgba(220,38,38,0.6)] relative z-10 transform hover:scale-105 active:scale-95";
+            icon.className = "bx bx-radar text-6xl text-white mb-1 drop-shadow-md";
+            text.className = "font-black text-white uppercase tracking-widest text-xs text-center px-2";
+            text.innerText = "PARAR RASTREIO";
+            
             pulse.classList.remove('hidden');
             pulse.classList.add('gps-active-pulse');
-            msg.innerHTML = "Sinal de Satélite Aberto!<br><span class='text-green-400 text-xs'>Sua posição está sendo transmitida para a AED.</span>";
+            msg.innerHTML = "<div class='bg-red-900/50 border border-red-800 p-3 rounded-lg'><b class='text-red-500'>Sinal Emitido!</b><br><span class='text-slate-300 text-xs'>Sua posição está espelhada no mapa do Gestor. Dirija com cuidado.</span></div>";
 
             watchId = navigator.geolocation.watchPosition(
                 (pos) => {
                     const { latitude, longitude } = pos.coords;
-                    db.ref(`${AED_DB}/gps_tracking/${veiculoSelecionado}`).set({
+                    // Envia a localização carimbando O NOME DO MOTORISTA e A PLACA
+                    db.ref(`${AED_DB}/gps_tracking/${veiculoDoRomaneio}`).set({
                         lat: latitude, lng: longitude, 
-                        timestamp: Date.now(), status: 'online', motorista: currentUser.email
+                        timestamp: Date.now(), status: 'online', 
+                        motorista: currentUser.email.split('@')[0].toUpperCase() // Salva o nome para exibir no mapa do Gestor
                     });
                 },
-                (err) => { alert("Atenção: Você precisa PERMITIR que o navegador acesse a sua Localização."); desligarGPS(); },
+                (err) => { alert("ACESSO NEGADO AO GPS. Por favor, libere a localização no navegador do seu celular."); desligarGPS(); },
                 { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
             );
         }
 
         function desligarGPS() {
             if(watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-            if(veiculoSelecionado) { db.ref(`${AED_DB}/gps_tracking/${veiculoSelecionado}/status`).set('offline'); }
+            if(veiculoDoRomaneio) { db.ref(`${AED_DB}/gps_tracking/${veiculoDoRomaneio}/status`).set('offline'); }
             
             const btn = document.getElementById('btn-toggle-gps');
             const icon = document.getElementById('gps-icon');
             const text = document.getElementById('gps-text');
             const pulse = document.getElementById('gps-pulse');
             
-            btn.classList.replace('border-red-600', 'border-green-600');
-            btn.classList.replace('bg-red-900', 'bg-green-900');
-            btn.classList.replace('hover:bg-red-800', 'hover:bg-green-800');
-            icon.classList.replace('text-white', 'text-green-400');
-            text.classList.replace('text-white', 'text-green-400');
-            text.innerText = "LIGAR GPS ROTA";
+            btn.className = "w-40 h-40 bg-blue-900 border-4 border-blue-600 hover:bg-blue-800 rounded-full flex flex-col items-center justify-center transition-all shadow-[0_0_30px_rgba(37,99,235,0.5)] relative z-10 transform hover:scale-105 active:scale-95";
+            icon.className = "bx bx-navigation text-6xl text-white mb-2 drop-shadow-md";
+            text.className = "font-black text-white uppercase tracking-widest text-sm text-center px-2";
+            text.innerText = "INICIAR ROTA\nE LIGAR GPS";
+            
             pulse.classList.add('hidden');
             pulse.classList.remove('gps-active-pulse');
-            document.getElementById('gps-status-msg').innerText = "Rastreamento pausado. Ninguém está vendo sua posição.";
+            document.getElementById('gps-status-msg').innerHTML = "Rastreamento pausado com sucesso.";
         }
 
         // --- G. MAPAS DO GOOGLE E IA IA (ADMIN) ---
-        // As lógicas de mapa e AI continuam inalteradas do código anterior para preservar a perfeição do Radar de Lojas.
         function loadGoogleMapsScript() {
             if(mapsLoaded || !GOOGLE_MAPS_KEY) return;
             const s = document.createElement('script');
@@ -918,11 +973,25 @@
             }
         }
 
-        function atualizarMarcadorVeiculo(placa, lat, lng) {
+        function atualizarMarcadorVeiculo(placa, lat, lng, nomeMotorista) {
             if(!mapRastreioObj) return;
             const pos = { lat, lng };
-            if(markersFrota[placa]) markersFrota[placa].setPosition(pos);
-            else markersFrota[placa] = new google.maps.Marker({ position: pos, map: mapRastreioObj, title: placa, icon: "http://maps.google.com/mapfiles/ms/icons/truck.png" });
+            if(markersFrota[placa]) {
+                markersFrota[placa].setPosition(pos);
+            } else {
+                markersFrota[placa] = new google.maps.Marker({ 
+                    position: pos, 
+                    map: mapRastreioObj, 
+                    title: `${placa} - Condutor: ${nomeMotorista}`, 
+                    icon: "http://maps.google.com/mapfiles/ms/icons/truck.png" 
+                });
+                
+                // Balãozinho no mapa com placa e motorista
+                const info = new google.maps.InfoWindow({
+                    content: `<div style="padding: 5px;"><b>Veículo:</b> ${placa}<br><b>Condutor:</b> ${nomeMotorista}</div>`
+                });
+                markersFrota[placa].addListener("click", () => { info.open(mapRastreioObj, markersFrota[placa]); });
+            }
         }
 
         let routeMarkers = [];
