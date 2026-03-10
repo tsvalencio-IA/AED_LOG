@@ -327,9 +327,18 @@
                 <div id="view-clientes" class="view-content hidden-view space-y-4">
                     <div class="bg-white p-4 sm:p-5 rounded-2xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
                         <h3 class="font-black uppercase tracking-tighter text-lg text-slate-800">Base de Clientes Cadastrados</h3>
-                        <button onclick="window.abrirModal('modal-cliente')" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-black text-xs uppercase shadow-lg transition active:scale-95 flex justify-center items-center gap-2">
-                            <i class='bx bx-plus-circle text-lg'></i> Nova Loja Base
-                        </button>
+                        <div class="flex flex-wrap gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                            <input type="file" id="import-excel" accept=".xlsx, .xls" class="hidden" onchange="window.importarClientesExcel(event)">
+                            <button onclick="document.getElementById('import-excel').click()" class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl font-black text-[10px] sm:text-xs uppercase shadow-lg transition active:scale-95 flex justify-center items-center gap-2" title="Importar Excel">
+                                <i class='bx bx-import text-lg'></i> <span class="hidden sm:inline">Importar</span>
+                            </button>
+                            <button onclick="window.exportarClientesExcel()" class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-black text-[10px] sm:text-xs uppercase shadow-lg transition active:scale-95 flex justify-center items-center gap-2" title="Exportar Excel">
+                                <i class='bx bx-export text-lg'></i> <span class="hidden sm:inline">Exportar</span>
+                            </button>
+                            <button onclick="window.abrirModal('modal-cliente')" class="flex-[2] sm:flex-none bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-black text-[10px] sm:text-xs uppercase shadow-lg transition active:scale-95 flex justify-center items-center gap-2">
+                                <i class='bx bx-plus-circle text-lg'></i> Nova Loja
+                            </button>
+                        </div>
                     </div>
                     <div class="bg-white rounded-2xl shadow-sm border overflow-x-auto">
                         <table class="w-full text-left text-sm font-medium min-w-[600px]">
@@ -1523,6 +1532,92 @@
                     alert("Atenção! A loja foi salva, mas o Google NÃO ENCONTROU AS COORDENADAS (lat/lng nulas ou gerou NaN). Apague o registo e cadastre de novo garantindo que seleciona a sugestão da Google na lista.");
                 }
             });
+        };
+
+        window.exportarClientesExcel = async function() {
+            try {
+                const snap = await db.ref(`${DB_ROOT}/clientes`).once('value');
+                if(!snap.exists()) return alert("Nenhum cliente cadastrado na base para exportar.");
+                
+                const data = [];
+                snap.forEach(c => {
+                    const v = c.val();
+                    data.push({
+                        "Nome": v.nome || "",
+                        "Telefone": v.tel || "",
+                        "Cidade": v.cid || "",
+                        "Endereço": v.end || "",
+                        "Lat": v.lat || "",
+                        "Lng": v.lng || ""
+                    });
+                });
+                
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Lojas_AED");
+                XLSX.writeFile(wb, "Base_Clientes_AED_Log.xlsx");
+            } catch(e) {
+                alert("Erro ao exportar base de dados: " + e.message);
+            }
+        };
+
+        window.importarClientesExcel = function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(ev) {
+                try {
+                    const data = new Uint8Array(ev.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if(json.length === 0) return alert("A planilha está vazia ou o formato é inválido.");
+                    if(!confirm(`Confirma a importação de ${json.length} lojas/clientes para a base de dados?`)) return;
+
+                    const btn = document.querySelector('button[title="Importar Excel"]');
+                    const oldHtml = btn.innerHTML;
+                    btn.innerHTML = "<i class='bx bx-loader-alt bx-spin text-lg'></i>";
+                    btn.disabled = true;
+
+                    let importados = 0;
+                    for(const row of json) {
+                        const nome = row["Nome"] || row["nome"] || row["NOME"];
+                        if(!nome) continue; 
+                        
+                        const tel = row["Telefone"] || row["telefone"] || row["Celular"] || row["Contato"] || "";
+                        const cid = row["Cidade"] || row["cidade"] || row["CIDADE"] || "";
+                        const end = row["Endereço"] || row["Endereco"] || row["endereço"] || row["endereco"] || "";
+                        const latRaw = row["Lat"] || row["lat"] || row["Latitude"] || row["latitude"] || "";
+                        const lngRaw = row["Lng"] || row["lng"] || row["Longitude"] || row["longitude"] || "";
+                        
+                        let lat = latRaw ? parseFloat(String(latRaw).replace(',', '.')) : null;
+                        let lng = lngRaw ? parseFloat(String(lngRaw).replace(',', '.')) : null;
+                        if(isNaN(lat)) lat = null;
+                        if(isNaN(lng)) lng = null;
+
+                        await db.ref(`${DB_ROOT}/clientes`).push({
+                            nome: String(nome),
+                            tel: String(tel),
+                            cid: String(cid),
+                            end: String(end),
+                            lat: lat,
+                            lng: lng
+                        });
+                        importados++;
+                    }
+                    alert(`${importados} Lojas importadas com sucesso para a Base Logística!`);
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                } catch(error) {
+                    alert("Erro grave ao processar a planilha: " + error.message);
+                } finally {
+                    e.target.value = ""; // Limpa o input para poder clicar de novo
+                }
+            };
+            reader.readAsArrayBuffer(file);
         };
 
         window.abrirModalCarga = function() {
