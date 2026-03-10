@@ -895,22 +895,57 @@
             }
         };
 
-        // --- MOTOR LOGÍSTICO V4 (COM PREVENÇÃO DE CRASH FATAL E CORREÇÃO DE EXCLUSÃO) ---
+        // --- MOTOR LOGÍSTICO V4: PUXANDO A ORIGEM EM TEMPO REAL ANTES DA ROTA ---
         window.analisarRotaClientesBase = async function() {
             const placa = document.getElementById('radar-veiculo').value;
-            const org = document.getElementById('origem-rota').value;
             const btn = document.getElementById('btn-analisar-rota');
             const alertBox = document.getElementById('alerta-sucesso');
             if(alertBox) alertBox.classList.add('hidden');
             
-            if(!directionsService || !org || !placa) return alert("Erro: Selecione a viatura e aguarde o GPS.");
+            if(!directionsService || !placa) return alert("Erro: Selecione a viatura para iniciar.");
 
-            btn.innerHTML = "<div class='loader border-t-amber-400 mx-auto'></div> Extraindo Entregas...";
+            btn.innerHTML = "<div class='loader border-t-amber-400 mx-auto'></div> Rastreando Caminhão Agora...";
             routeMarkers.forEach(m => { m.map = null; }); routeMarkers = [];
 
-            const originCoord = (org.includes(',')) ? { lat: parseFloat(org.split(',')[0]), lng: parseFloat(org.split(',')[1]) } : org;
+            // NOVIDADE: PEGA A LOCALIZAÇÃO AO VIVO DO CAMINHÃO NO MOMENTO DO CLIQUE
+            let originLatLng = null;
+            const liveGpsSnap = await db.ref(`${DB_ROOT}/gps_tracking/${placa}`).once('value');
+            if(liveGpsSnap.exists() && liveGpsSnap.val().status === 'online') {
+                const lat = liveGpsSnap.val().lat;
+                const lng = liveGpsSnap.val().lng;
+                originLatLng = new google.maps.LatLng(lat, lng);
+                document.getElementById('origem-rota').value = `${lat}, ${lng}`; // Atualiza o visual
+            }
+
+            const geocoder = new google.maps.Geocoder();
             
-            // PEGA TODAS AS CARGAS DO CAMINHÃO PARA NÃO ENVIAR CLIENTE QUE JÁ FOI ENTREGUE HOJE PARA O RADAR
+            // Fallback se o satélite falhar
+            if (!originLatLng) {
+                const org = document.getElementById('origem-rota').value;
+                if(org.includes(',')) {
+                    try {
+                        const parts = org.split(',');
+                        originLatLng = new google.maps.LatLng(parseFloat(parts[0]), parseFloat(parts[1]));
+                    } catch(e) {}
+                }
+                if (!originLatLng) {
+                    btn.innerHTML = "<div class='loader border-t-amber-400 mx-auto'></div> Validando Origem por Texto...";
+                    originLatLng = await new Promise(res => {
+                        try {
+                            geocoder.geocode({ address: org }, (r, s) => {
+                                if (s === 'OK' && r[0]) res(r[0].geometry.location);
+                                else res(null);
+                            });
+                        } catch(e) { res(null); }
+                    });
+                }
+            }
+
+            if(!originLatLng) {
+                btn.innerHTML = "<i class='bx bx-map-pin text-xl'></i> Iniciar Varredura e Despachar";
+                return alert("Erro: Não foi possível localizar o ponto de origem do caminhão no mapa.");
+            }
+
             const cgSnap = await db.ref(`${DB_ROOT}/cargas`).orderByChild('veiculo').equalTo(placa).once('value');
             const romaneioAtivo = [];
             const destinosParaExcluirDoRadar = [];
@@ -922,8 +957,8 @@
             });
 
             if(romaneioAtivo.length === 0) {
-                btn.innerHTML = "<i class='bx bx-map-pin text-xl'></i> Iniciar Varredura e Despachar ao Motorista";
-                return alert("Nenhum romaneio ativo encontrado para este camião. Se ele já entregou tudo, crie um novo romaneio.");
+                btn.innerHTML = "<i class='bx bx-map-pin text-xl'></i> Iniciar Varredura e Despachar";
+                return alert("Nenhum romaneio ativo encontrado para este camião. Se ele já entregou tudo, crie um novo romaneio com a próxima viagem.");
             }
 
             const clSnap = await db.ref(`${DB_ROOT}/clientes`).once('value');
@@ -931,23 +966,7 @@
             clSnap.forEach(c => { clientesBase.push({...c.val(), id: c.key}); });
 
             const deliveryPoints = [];
-            let originLatLng;
-            const geocoder = new google.maps.Geocoder();
-
-            if (typeof originCoord === 'object') {
-                originLatLng = originCoord;
-            } else {
-                btn.innerHTML = "<div class='loader border-t-amber-400 mx-auto'></div> Validando Origem...";
-                originLatLng = await new Promise(res => {
-                    try {
-                        geocoder.geocode({ address: originCoord }, (r, s) => {
-                            if (s === 'OK' && r[0]) res({ lat: r[0].geometry.location.lat(), lng: r[0].geometry.location.lng() });
-                            else res({lat: -20.8, lng: -49.3});
-                        });
-                    } catch(e) { res({lat: -20.8, lng: -49.3}); }
-                });
-            }
-
+            
             btn.innerHTML = "<div class='loader border-t-amber-400 mx-auto'></div> Extraindo Lat/Lng Otimizadas...";
             
             await Promise.all(romaneioAtivo.map(async (carga) => {
@@ -992,11 +1011,10 @@
 
             let maxDist = -1;
             let destIndex = validDeliveryPoints.length - 1;
-            const origPt = new google.maps.LatLng(originLatLng.lat, originLatLng.lng);
 
             validDeliveryPoints.forEach((pt, i) => {
                 if(pt.location && typeof pt.location.lat === 'function') {
-                    const d = google.maps.geometry.spherical.computeDistanceBetween(origPt, pt.location);
+                    const d = google.maps.geometry.spherical.computeDistanceBetween(originLatLng, pt.location);
                     if (d > maxDist) { maxDist = d; destIndex = i; }
                 }
             });
@@ -1018,7 +1036,6 @@
             try {
                 directionsService.route(req, (res, status) => {
                     if (status === 'OK') {
-                        // Enviamos destinosExcluidos para que não apareçam no radar!
                         window.processarCruzamentoRadial(res, btn, clientesBase, destinosParaExcluirDoRadar, placa, geocoder);
                     } else {
                         btn.innerHTML = "<i class='bx bx-map-pin text-xl'></i> Tentar Novamente";
@@ -1081,7 +1098,7 @@
                     if(!cli) continue; 
                     const cliName = cli.nome ? String(cli.nome).toUpperCase().trim() : "";
                     
-                    // Verificação de Exclusão (Não entra no radar se já for uma entrega, mesmo concluída hoje)
+                    // A LOGICA DO RADAR: Se está entregue, ele passa do filtro e PODE ser radar! Só exclui os que ainda não foram entregues.
                     if(cliName && destinosExcluidos.includes(cliName)) continue; 
 
                     const safeLatLng = getSafeLatLng(cli.lat, cli.lng);
@@ -1256,9 +1273,8 @@
             const prompt = `Aja como o Diretor de Logística da AED Marcenaria. Escreva uma mensagem de WhatsApp para o cliente cadastrado "${activePlaceDetails.name}" (Cidade/Local: ${activePlaceDetails.address}). Contexto: Estamos a planear a rota logística dos próximos dias e o nosso camião vai passar obrigatoriamente na região ou estrada deles para realizar outras entregas. A nossa estratégia com eles agora é: "${ctx}". Instruções: Como já são nossos clientes, seja cordial e próximo. O grande benefício é que podemos colocar mercadoria deles à "boleia" no camião com ZERO CUSTO DE FRETE. Não envie a mensagem como se o camião estivesse à porta agora, mostre que estamos a organizar a logística semanal. Use 2 ou 3 emojis, tom profissional mas atencioso, e feche com uma pergunta que gere interação imediata.`;
             
             try {
-                // ATENÇÃO EXTREMA: NO AMBIENTE ONDE ESTE CÓDIGO É COMPILADO, O NOME OFICIAL DA API É ESTE (2.5 PREVIEW).
-                // SE O GOOGLE RECUSAR ISSO NA SUA CHAVE, É PORQUE A SUA CHAVE É RESTRITA DE REGIÃO OU SEM SALDO.
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`, { 
+                // MIGRAÇÃO ATENDIDA: O Google pediu para atualizar para a versão 2.5 Flash oficial e desativar as previews e 2.0.
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, { 
                     method: 'POST', 
                     headers: {'Content-Type':'application/json'}, 
                     body: JSON.stringify({ contents: [{parts:[{text: prompt}]}] }) 
@@ -1742,14 +1758,18 @@
                     });
 
                 } else {
-                    veiculoDoRomaneio = null; if(watchId) window.desligarGPS();
-                    document.getElementById('container-mapa-mot').classList.add('hidden');
+                    // O motorista não tem entregas pendentes. MAS O GPS NÃO DEVE SER DESLIGADO AUTOMATICAMENTE!
+                    if(st) st.innerHTML = `<div class="p-6 sm:p-8 text-center"><i class='bx bxs-check-circle text-5xl sm:text-6xl text-green-500 mb-4'></i><p class="text-slate-300 font-black text-lg sm:text-xl mb-1">Entregas Concluídas!</p><p class="text-[10px] sm:text-xs text-slate-500 mt-2 font-medium">O seu GPS continua transmitindo para a Base acompanhar o seu retorno. Desligue-o no botão quando chegar na empresa.</p></div>`;
+                    if(cnt) cnt.classList.add('hidden');
+                    
                     if(listenerRadarMotorista) { db.ref(`${DB_ROOT}/radar_ativo/${veiculoDoRomaneio}`).off('value', listenerRadarMotorista); listenerRadarMotorista = null; }
                     
-                    if(st) st.innerHTML = `<div class="p-6 sm:p-8 text-center"><i class='bx bxs-coffee-alt text-5xl sm:text-6xl text-slate-600 mb-4'></i><p class="text-slate-300 font-black text-lg sm:text-xl mb-1">Sem Operação Externa</p><p class="text-[10px] sm:text-xs text-slate-500 mt-2 font-medium">Aguarde o Administrador vincular um Romaneio de Viagem para o seu usuário.</p></div>`;
-                    if(cnt) cnt.classList.add('hidden');
-                    if(btnGps) { btnGps.disabled = true; btnGps.className = "w-40 h-40 sm:w-48 sm:h-48 bg-slate-900 border-4 border-slate-800 rounded-full flex flex-col items-center justify-center opacity-40 z-10"; document.getElementById('gps-icon').className = "bx bx-navigation text-5xl sm:text-6xl text-slate-700 mb-2"; document.getElementById('gps-text').className = "font-black text-slate-700 uppercase text-[10px] sm:text-sm tracking-widest leading-tight"; document.getElementById('gps-text').innerText = "SISTEMA\nBLOQUEADO"; }
-                    const msg = document.getElementById('gps-status-msg'); if(msg) msg.innerHTML = "";
+                    // Somente tira as credenciais de GPS se ele REALMENTE estiver com o GPS desligado.
+                    if (!watchId) {
+                        veiculoDoRomaneio = null;
+                        if(btnGps) { btnGps.disabled = true; btnGps.className = "w-40 h-40 sm:w-48 sm:h-48 bg-slate-900 border-4 border-slate-800 rounded-full flex flex-col items-center justify-center opacity-40 z-10"; document.getElementById('gps-icon').className = "bx bx-navigation text-5xl sm:text-6xl text-slate-700 mb-2"; document.getElementById('gps-text').className = "font-black text-slate-700 uppercase text-[10px] sm:text-sm tracking-widest leading-tight"; document.getElementById('gps-text').innerText = "SISTEMA\nBLOQUEADO"; }
+                        const msg = document.getElementById('gps-status-msg'); if(msg) msg.innerHTML = "";
+                    }
                 }
             });
         };
@@ -1852,7 +1872,7 @@
             }
         });
 
-        // MODO WAZE: RASTREIO DINÂMICO
+        // MODO WAZE: RASTREIO DINÂMICO E SEGUNDO PLANO
         window.ligarGPS = async function() {
             if(!navigator.geolocation) return alert("O navegador do celular bloqueia leitura de GPS.");
             if(!veiculoDoRomaneio) return alert("Ação negada: Sem veículo atribuído.");
@@ -1865,7 +1885,7 @@
             const icn = document.getElementById('gps-icon'); if(icn) icn.className = "bx bx-radar text-5xl sm:text-7xl text-white mb-2 drop-shadow-md"; 
             const txt = document.getElementById('gps-text'); if(txt) { txt.className = "font-black text-white uppercase text-[9px] sm:text-[10px] text-center tracking-widest leading-tight px-4"; txt.innerText = "OPERAÇÃO ATIVA\n(TOCAR P/ PAUSAR)"; }
             if(pulse) { pulse.classList.remove('hidden'); pulse.classList.add('gps-active-pulse'); }
-            const msg = document.getElementById('gps-status-msg'); if(msg) msg.innerHTML = "<div class='bg-red-900/50 border border-red-800 p-3 sm:p-4 rounded-xl shadow-inner'><b class='text-red-500 block mb-1 text-sm sm:text-base'><i class='bx bx-check-shield'></i> Rastreador Ativo</b><span class='text-slate-300 text-[10px] sm:text-xs font-medium'>O satélite está acompanhando. Mantenha o navegador aberto para não perder o sinal. A tela não vai apagar.</span></div>";
+            const msg = document.getElementById('gps-status-msg'); if(msg) msg.innerHTML = "<div class='bg-red-900/50 border border-red-800 p-3 sm:p-4 rounded-xl shadow-inner'><b class='text-red-500 block mb-1 text-sm sm:text-base'><i class='bx bx-check-shield'></i> Rastreador Ativo</b><span class='text-slate-300 text-[10px] sm:text-xs font-medium'>O satélite está acompanhando. Mantenha o navegador aberto para não perder o sinal. A tela não vai apagar sozinha.</span></div>";
 
             watchId = navigator.geolocation.watchPosition(
                 (pos) => { 
