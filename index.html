@@ -1,3 +1,4 @@
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -241,7 +242,7 @@
                                 <h3 class="font-black text-slate-800 mb-2 uppercase text-base tracking-tight flex items-center gap-2">
                                     <i class='bx bx-radar text-amber-500 text-2xl'></i> Radar Transparente IA <span class="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-black">V4</span>
                                 </h3>
-                                <p class="text-[11px] text-slate-500 mb-6 font-medium uppercase tracking-tight">Varrimento Cirúrgico (10 km). Escudo anti-falhas ativado. O sistema mostrará o Status Exato de Todos os clientes, expondo os que não possuírem GPS.</p>
+                                <p class="text-[11px] text-slate-500 mb-6 font-medium uppercase tracking-tight">Varrimento Cirúrgico (15 km). Escudo anti-falhas ativado. O sistema mostrará o Status Exato de Todos os clientes, expondo os que não possuírem GPS.</p>
                                 
                                 <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-5 shadow-inner">
                                     <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block ml-1 tracking-widest">1. Selecionar Viatura Logística em Operação</label>
@@ -661,6 +662,9 @@
         let directionsService = null, directionsRenderer = null, dirRendererMot = null;
         let markersFrota = {}; let routeMarkers = []; let activePlaceDetails = null;
         let clienteGooglePlaceLocation = null;
+        
+        // Rastreador Live ("Modo Waze")
+        let driverMarkerMap = null;
 
         // O ESCUDO ANTI-CRASH MATEMÁTICO
         function getSafeLatLng(lat, lng) {
@@ -868,7 +872,7 @@
             }
         };
 
-        // --- MOTOR LOGÍSTICO V4 (COM PREVENÇÃO DE CRASH FATAL) ---
+        // --- MOTOR LOGÍSTICO V4 (COM PREVENÇÃO DE CRASH FATAL E CORREÇÃO DE EXCLUSÃO) ---
         window.analisarRotaClientesBase = async function() {
             const placa = document.getElementById('radar-veiculo').value;
             const org = document.getElementById('origem-rota').value;
@@ -883,17 +887,22 @@
 
             const originCoord = (org.includes(',')) ? { lat: parseFloat(org.split(',')[0]), lng: parseFloat(org.split(',')[1]) } : org;
             
+            // PEGA TODAS AS CARGAS DO CAMINHÃO PARA NÃO ENVIAR CLIENTE QUE JÁ FOI ENTREGUE HOJE PARA O RADAR
             const cgSnap = await db.ref(`${DB_ROOT}/cargas`).orderByChild('veiculo').equalTo(placa).once('value');
-            const romaneio = [];
-            cgSnap.forEach(c => { if(c.val().status === 'Em Rota') romaneio.push({...c.val(), id: c.key}); });
+            const romaneioAtivo = [];
+            const destinosParaExcluirDoRadar = [];
 
-            if(romaneio.length === 0) {
+            cgSnap.forEach(c => { 
+                const val = c.val();
+                if(val.destino) destinosParaExcluirDoRadar.push(val.destino.toUpperCase().trim());
+                if(val.status === 'Em Rota') romaneioAtivo.push({...val, id: c.key}); 
+            });
+
+            if(romaneioAtivo.length === 0) {
                 btn.innerHTML = "<i class='bx bx-map-pin text-xl'></i> Iniciar Varredura e Despachar ao Motorista";
-                return alert("Nenhum romaneio ativo encontrado para este camião.");
+                return alert("Nenhum romaneio ativo encontrado para este camião. Se ele já entregou tudo, crie um novo romaneio.");
             }
 
-            // O GRANDE BUG ESTAVA AQUI: O forEach do Firebase cancela o laço se a arrow function não tiver {}.
-            // Agora com { }, a lista de TODOS os clientes é extraída perfeitamente, sem parar no primeiro!
             const clSnap = await db.ref(`${DB_ROOT}/clientes`).once('value');
             const clientesBase = [];
             clSnap.forEach(c => { clientesBase.push({...c.val(), id: c.key}); });
@@ -918,7 +927,7 @@
 
             btn.innerHTML = "<div class='loader border-t-amber-400 mx-auto'></div> Extraindo Lat/Lng Otimizadas...";
             
-            await Promise.all(romaneio.map(async (carga) => {
+            await Promise.all(romaneioAtivo.map(async (carga) => {
                 const cliMatch = clientesBase.find(c => {
                     if(!c || !carga) return false;
                     const nomeMatch = (c.nome && carga.destino) ? c.nome.toUpperCase().trim() === carga.destino.toUpperCase().trim() : false;
@@ -986,7 +995,8 @@
             try {
                 directionsService.route(req, (res, status) => {
                     if (status === 'OK') {
-                        window.processarCruzamentoRadial(res, btn, clientesBase, romaneio, placa, geocoder);
+                        // Enviamos destinosExcluidos para que não apareçam no radar!
+                        window.processarCruzamentoRadial(res, btn, clientesBase, destinosParaExcluirDoRadar, placa, geocoder);
                     } else {
                         btn.innerHTML = "<i class='bx bx-map-pin text-xl'></i> Tentar Novamente";
                         alert("A Google Maps falhou ao traçar esta rota. Erro: " + status);
@@ -995,8 +1005,7 @@
             } catch(e) { btn.innerHTML = "<i class='bx bx-error text-xl'></i> Erro no Motor Google"; console.error(e); }
         };
 
-        // ====== O SEGREDO DO RADAR TRANSPARENTE E RAIO-X (V4) ======
-        window.processarCruzamentoRadial = function(res, btn, clientesBase, romaneio, veiculoSelecionado) {
+        window.processarCruzamentoRadial = function(res, btn, clientesBase, destinosExcluidos, veiculoSelecionado, geocoder) {
             try {
                 directionsRenderer.setDirections(res);
                 
@@ -1044,13 +1053,13 @@
                 const clientesIn = [];
                 const clientesOut = []; 
                 const clientesErro = []; 
-                
-                const nomesEntregasOficiais = romaneio.map(r => (r.destino || "").toUpperCase().trim());
 
                 for (const cli of clientesBase) {
                     if(!cli) continue; 
                     const cliName = cli.nome ? String(cli.nome).toUpperCase().trim() : "";
-                    if(cliName && nomesEntregasOficiais.includes(cliName)) continue; 
+                    
+                    // Verificação de Exclusão (Não entra no radar se já for uma entrega, mesmo concluída hoje)
+                    if(cliName && destinosExcluidos.includes(cliName)) continue; 
 
                     const safeLatLng = getSafeLatLng(cli.lat, cli.lng);
 
@@ -1082,13 +1091,11 @@
             }
         };
 
-        // UI OTIMISTA SÍNCRONA: Nunca mais vai travar no "Aguardando..."
         window.renderizarRadarSincrono = function(clientesIn, clientesOut, clientesErro, veiculo) {
             const containerLista = document.getElementById('conteudo-lista');
             const badge = document.getElementById('badge-places');
             const alerta = document.getElementById('alerta-sucesso');
             
-            // SOMATÓRIO PARA MOSTRAR QUE ANALISOU A BASE TODA
             const totalAnalisados = clientesIn.length + clientesOut.length + clientesErro.length;
             if(badge) { 
                 badge.innerText = `${clientesIn.length} NA ROTA | TOTAL BASE: ${totalAnalisados}`; 
@@ -1200,9 +1207,7 @@
                         const m = await desenharMarcador(c.location, mapRotaObj, `${c.nome} (Longe da Rota: ${distKm}km)`, "https://maps.google.com/mapfiles/ms/icons/blue-dot.png");
                         routeMarkers.push(m);
                     }
-                } catch(e) {
-                    console.error("Aviso do processo Background:", e);
-                }
+                } catch(e) { console.error("Aviso do processo Background:", e); }
             }, 50); 
         };
 
@@ -1217,12 +1222,39 @@
         window.gerarTextoIA = async function() {
             const txt = document.getElementById('ia-texto'); const load = document.getElementById('ia-loading');
             if(load) load.classList.remove('hidden'); if(txt) txt.value = "";
+            
+            if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "") {
+                if(txt) txt.value = "⚠️ AVISO: A Chave da Inteligência Artificial não está configurada no seu painel.\n\nPor favor, vá ao menu 'Configurações & APIs' (no menu lateral escuro) e insira sua API Key do Google Gemini para que o Cérebro IA comece a redigir os textos automaticamente.";
+                if(load) load.classList.add('hidden');
+                return;
+            }
+
             const ctx = document.getElementById('ia-contexto').options[document.getElementById('ia-contexto').selectedIndex].text;
             const prompt = `Aja como o Diretor de Logística da AED Marcenaria. Escreva uma mensagem de WhatsApp para o cliente cadastrado "${activePlaceDetails.name}" (Cidade/Local: ${activePlaceDetails.address}). Contexto: Estamos a planear a rota logística dos próximos dias e o nosso camião vai passar obrigatoriamente na região ou estrada deles para realizar outras entregas. A nossa estratégia com eles agora é: "${ctx}". Instruções: Como já são nossos clientes, seja cordial e próximo. O grande benefício é que podemos colocar mercadoria deles à "boleia" no camião com ZERO CUSTO DE FRETE. Não envie a mensagem como se o camião estivesse à porta agora, mostre que estamos a organizar a logística semanal. Use 2 ou 3 emojis, tom profissional mas atencioso, e feche com uma pergunta que gere interação imediata.`;
+            
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ contents: [{parts:[{text: prompt}]}] }) });
-                const d = await res.json(); if(txt) txt.value = d.candidates[0].content.parts[0].text;
-            } catch(e) { if(txt) txt.value = "Conexão IA perdida."; } finally { if(load) load.classList.add('hidden'); }
+                // ATUALIZAÇÃO DO MOTOR DA IA PARA A VERSÃO FLASH MAIS RECENTE SUPORTADA E CONTÍNUA.
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`, { 
+                    method: 'POST', 
+                    headers: {'Content-Type':'application/json'}, 
+                    body: JSON.stringify({ contents: [{parts:[{text: prompt}]}] }) 
+                });
+                
+                const d = await res.json(); 
+                
+                if (!res.ok) throw new Error(d.error ? d.error.message : "Falha na requisição da API.");
+
+                if(txt && d.candidates && d.candidates.length > 0) {
+                    txt.value = d.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error("O Google não retornou nenhum texto.");
+                }
+            } catch(e) { 
+                console.error("Erro detalhado IA:", e);
+                if(txt) txt.value = `⚠️ Falha ao se conectar com a Inteligência Artificial.\n\nDetalhe do Google: ${e.message}\n\nO que fazer?\n1. Verifique se a sua Chave (API Key) em 'Configurações' está correta e válida.\n2. Aguarde alguns segundos e clique em 'Recriar' no botão abaixo.`; 
+            } finally { 
+                if(load) load.classList.add('hidden'); 
+            }
         };
 
         window.enviarWpp = function() { 
@@ -1237,8 +1269,7 @@
                 snap.forEach(c => { 
                     cCount++; 
                     const d = c.val(); 
-                    // Novo Escudo visual de GPS na tabela de clientes
-                    const geoBadge = (d.lat && d.lng) ? `<i class='bx bx-check-shield text-green-500 text-sm ml-1' title='GPS OK'></i>` : `<i class='bx bx-error-circle text-red-500 text-sm ml-1' title='Falta GPS'></i>`;
+                    const geoBadge = (d.lat && d.lng) ? `<span class="bg-green-100 text-green-700 text-[8px] px-1 rounded ml-2" title="Coordenadas Salvas">GPS OK</span>` : `<span class="bg-red-100 text-red-700 text-[8px] px-1 rounded ml-2" title="Sem GPS">FALHA GPS</span>`;
                     h += `<tr class="hover:bg-slate-50 transition border-b"><td class="p-4 font-black text-slate-800 text-xs uppercase flex items-center">${d.nome} ${geoBadge}</td><td class="p-4 text-xs font-bold text-slate-600">${d.tel}</td><td class="p-4 text-[9px] font-black uppercase text-slate-400 tracking-widest">${d.cid}</td><td class="p-4 text-center"><button onclick="window.excluir('clientes', '${c.key}')" class="text-red-300 hover:text-red-600"><i class='bx bx-trash text-lg'></i></button></td></tr>`; 
                 });
                 const lc = document.getElementById('lista-clientes'); if(lc) lc.innerHTML = h;
@@ -1292,13 +1323,15 @@
 
                 let h = ''; let oCount = eventos.length;
                 eventos.forEach(d => {
-                    const isVisita = d.tipo && d.tipo.includes('Visita');
-                    const corDot = isVisita ? 'bg-amber-500' : 'bg-red-500';
-                    const corValor = isVisita ? 'text-amber-600' : 'text-red-600';
-                    const icone = isVisita ? "<i class='bx bx-briefcase'></i>" : "<i class='bx bxs-truck'></i>";
+                    let corDot = 'bg-slate-500';
+                    let corValor = 'text-slate-600';
+                    let icone = "<i class='bx bxs-truck'></i>";
+
+                    if (d.tipo && d.tipo.includes('Visita')) { corDot = 'bg-amber-500'; corValor = 'text-amber-600'; icone = "<i class='bx bx-briefcase'></i>"; }
+                    if (d.tipo && d.tipo.includes('Entrega')) { corDot = 'bg-green-500'; corValor = 'text-green-600'; icone = "<i class='bx bx-check-shield'></i>"; }
 
                     const lnk = d.imgUrl ? `<a href="${d.imgUrl}" target="_blank" class="block w-max px-4 text-center bg-slate-900 text-white py-2 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] mt-3 shadow-lg active:scale-95 transition">Ver Recibo (R$ ${parseFloat(d.valor||0).toFixed(2)})</a>` : ``;
-                    const renderValor = (d.valor && !isVisita) ? `<p class="text-lg font-black ${corValor}">R$ ${parseFloat(d.valor||0).toFixed(2)}</p>` : ((d.valor && parseFloat(d.valor)>0) ? `<p class="text-sm font-black ${corValor}">R$ ${parseFloat(d.valor||0).toFixed(2)}</p>` : '');
+                    const renderValor = (d.valor && parseFloat(d.valor)>0 && !d.tipo.includes('Visita')) ? `<p class="text-lg font-black ${corValor}">R$ ${parseFloat(d.valor||0).toFixed(2)}</p>` : ((d.valor && parseFloat(d.valor)>0) ? `<p class="text-sm font-black ${corValor}">R$ ${parseFloat(d.valor||0).toFixed(2)}</p>` : '');
 
                     h += `
                     <div class="relative pl-6">
@@ -1496,7 +1529,7 @@
             db.ref(`${DB_ROOT}/config`).update({ gemini_key: document.getElementById('gemini-key').value, maps_key: mk, cloud_name: document.getElementById('cloud-name').value, upload_preset: document.getElementById('upload-preset').value }).then(() => { alert("As chaves de API foram encriptadas e salvas na Nuvem."); if(mk) window.carregarGoogleMapsRuntime(); }); 
         };
 
-        // --- MOTORISTA BLINDADO CONTRA CÓDIGO NaN ---
+        // --- MOTORISTA BLINDADO ---
         let watchId = null; let veiculoDoRomaneio = null; let listenerCargasMotorista = null; let listenerRadarMotorista = null;
 
         window.processarEExibirMapaMotorista = async function(romaneio, placa) {
@@ -1519,7 +1552,6 @@
                 
                 const clSnap = await db.ref(`${DB_ROOT}/clientes`).once('value');
                 const clientesBase = [];
-                // BUG CORRIGIDO AQUI TAMBÉM NO APP DO MOTORISTA: as chaves `{ }` evitam que o loop aborte!
                 clSnap.forEach(c => { clientesBase.push({...c.val(), id: c.key}); });
 
                 const deliveryPoints = [];
@@ -1603,8 +1635,9 @@
                         sortedPoints.forEach((pt, index) => { 
                             if(!pt || !pt.cargaObj) return;
                             const c = pt.cargaObj;
+                            const escDest = c.destino.replace(/'/g, "\\'");
                             const labelOrdem = (index === sortedPoints.length - 1) ? "DESTINO FINAL (OFICIAL)" : `PARADA ${index + 1} (OTIMIZADA)`;
-                            cartoesCarga += `<div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-2xl relative overflow-hidden mb-5"><div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div><p class="text-[10px] text-blue-400 font-black uppercase mb-1 tracking-widest flex items-center gap-1"><i class='bx bx-map-pin'></i> ${labelOrdem}</p><p class="text-2xl font-black text-white mb-4 leading-tight">${c.destino}</p><div class="bg-slate-900 p-4 rounded-2xl mb-5 border border-slate-700 shadow-inner"><p class="text-sm font-black text-white border-b border-slate-800 pb-3 mb-3 flex items-center justify-between"><span class="text-slate-400 font-medium text-xs uppercase tracking-widest flex items-center gap-1"><i class='bx bx-barcode'></i> Doc. NFe:</span> <span class="text-blue-400 text-lg">${c.nfe}</span></p><p class="text-sm text-slate-300 font-medium leading-relaxed">${c.desc}</p></div><button onclick="window.motoristaConfirmaEntrega('${c.id}', '${c.veiculo}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-black py-5 rounded-2xl flex justify-center items-center gap-2 shadow-lg transition transform active:scale-95 border border-green-400 uppercase tracking-widest text-sm"><i class='bx bx-check-double text-2xl drop-shadow'></i> Confirmar Descarga</button></div>`; 
+                            cartoesCarga += `<div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-2xl relative overflow-hidden mb-5"><div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div><p class="text-[10px] text-blue-400 font-black uppercase mb-1 tracking-widest flex items-center gap-1"><i class='bx bx-map-pin'></i> ${labelOrdem}</p><p class="text-2xl font-black text-white mb-4 leading-tight">${c.destino}</p><div class="bg-slate-900 p-4 rounded-2xl mb-5 border border-slate-700 shadow-inner"><p class="text-sm font-black text-white border-b border-slate-800 pb-3 mb-3 flex items-center justify-between"><span class="text-slate-400 font-medium text-xs uppercase tracking-widest flex items-center gap-1"><i class='bx bx-barcode'></i> Doc. NFe:</span> <span class="text-blue-400 text-lg">${c.nfe}</span></p><p class="text-sm text-slate-300 font-medium leading-relaxed">${c.desc}</p></div><button onclick="window.motoristaConfirmaEntrega('${c.id}', '${c.veiculo}', '${escDest}', '${c.nfe}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-black py-5 rounded-2xl flex justify-center items-center gap-2 shadow-lg transition transform active:scale-95 border border-green-400 uppercase tracking-widest text-sm"><i class='bx bx-check-double text-2xl drop-shadow'></i> Confirmar Descarga</button></div>`; 
                         });
                         const lCargas = document.getElementById('motorista-lista-cargas'); 
                         if(lCargas) lCargas.innerHTML = cartoesCarga;
@@ -1613,7 +1646,8 @@
                         validDeliveryPoints.forEach((pt, index) => { 
                             if(!pt || !pt.cargaObj) return;
                             const c = pt.cargaObj;
-                            fallbackCartoes += `<div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-2xl relative overflow-hidden mb-5"><div class="absolute top-0 left-0 w-2 h-full bg-slate-500"></div><p class="text-2xl font-black text-white mb-4 leading-tight">${c.destino}</p><div class="bg-slate-900 p-4 rounded-2xl mb-5 border border-slate-700 shadow-inner"><p class="text-sm font-black text-white border-b border-slate-800 pb-3 mb-3 flex items-center justify-between"><span class="text-slate-400 font-medium text-xs uppercase tracking-widest flex items-center gap-1"><i class='bx bx-barcode'></i> Doc. NFe:</span> <span class="text-blue-400 text-lg">${c.nfe}</span></p><p class="text-sm text-slate-300 font-medium leading-relaxed">${c.desc}</p></div><button onclick="window.motoristaConfirmaEntrega('${c.id}', '${c.veiculo}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-black py-5 rounded-2xl flex justify-center items-center gap-2 shadow-lg transition transform active:scale-95 border border-green-400 uppercase tracking-widest text-sm"><i class='bx bx-check-double text-2xl drop-shadow'></i> Confirmar Descarga</button></div>`; 
+                            const escDest = c.destino.replace(/'/g, "\\'");
+                            fallbackCartoes += `<div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-2xl relative overflow-hidden mb-5"><div class="absolute top-0 left-0 w-2 h-full bg-slate-500"></div><p class="text-2xl font-black text-white mb-4 leading-tight">${c.destino}</p><div class="bg-slate-900 p-4 rounded-2xl mb-5 border border-slate-700 shadow-inner"><p class="text-sm font-black text-white border-b border-slate-800 pb-3 mb-3 flex items-center justify-between"><span class="text-slate-400 font-medium text-xs uppercase tracking-widest flex items-center gap-1"><i class='bx bx-barcode'></i> Doc. NFe:</span> <span class="text-blue-400 text-lg">${c.nfe}</span></p><p class="text-sm text-slate-300 font-medium leading-relaxed">${c.desc}</p></div><button onclick="window.motoristaConfirmaEntrega('${c.id}', '${c.veiculo}', '${escDest}', '${c.nfe}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-black py-5 rounded-2xl flex justify-center items-center gap-2 shadow-lg transition transform active:scale-95 border border-green-400 uppercase tracking-widest text-sm"><i class='bx bx-check-double text-2xl drop-shadow'></i> Confirmar Descarga</button></div>`; 
                         });
                         const lCargas = document.getElementById('motorista-lista-cargas'); 
                         if(lCargas) lCargas.innerHTML = fallbackCartoes;
@@ -1739,13 +1773,27 @@
             };
         }
 
-        window.motoristaConfirmaEntrega = function(id, placa) { 
-            if(confirm("Confirmar a entrega completa da NFe ao destino? A Base Logística será notificada.")) {
-                db.ref(`${DB_ROOT}/cargas/${id}`).update({
+        // LÓGICA DE AUDITORIA DE ENTREGA
+        window.motoristaConfirmaEntrega = async function(id, placa, destino, nfe) { 
+            if(confirm(`Confirmar a entrega completa para ${destino}? A Base Logística será notificada e a entrega será salva na Auditoria.`)) {
+                
+                await db.ref(`${DB_ROOT}/cargas/${id}`).update({
                     status: 'Entregue',
                     data_entrega: Date.now(),
                     entregue_por: currentDriverName
                 }); 
+                
+                // CRIA O LOG NA AUDITORIA
+                await db.ref(`${DB_ROOT}/ocorrencias`).push({
+                    veiculo: placa || "Indeterminado",
+                    motorista: currentDriverName,
+                    tipo: `Entrega Realizada`,
+                    valor: 0,
+                    desc: `ENTREGA CONCLUÍDA: ${destino} | Doc NFe: ${nfe} | Status: Mercadoria descarregada com sucesso.`,
+                    imgUrl: "",
+                    data: Date.now()
+                });
+
                 db.ref(`${DB_ROOT}/cargas`).once('value', snap => {
                     let hasMore = false;
                     if(snap.exists()) { snap.forEach(c => { if(c.val().veiculo === placa && c.val().status === 'Em Rota' && c.key !== id) { hasMore = true; } }); }
@@ -1756,6 +1804,7 @@
 
         window.toggleGPS = function() { if(watchId) window.desligarGPS(); else window.ligarGPS(); };
 
+        // MODO WAZE: RASTREIO DINÂMICO
         window.ligarGPS = function() {
             if(!navigator.geolocation) return alert("O navegador do seu celular bloqueia leitura de GPS.");
             if(!veiculoDoRomaneio) return alert("Ação negada: Sem veículo atribuído.");
@@ -1767,7 +1816,28 @@
             const msg = document.getElementById('gps-status-msg'); if(msg) msg.innerHTML = "<div class='bg-red-900/50 border border-red-800 p-4 rounded-xl shadow-inner'><b class='text-red-500 block mb-1 text-lg'>Transmissão Contínua Ativa!</b><span class='text-slate-300 text-xs font-medium'>O satélite da Base está acompanhando o caminhão. Conduza com cautela.</span></div>";
 
             watchId = navigator.geolocation.watchPosition(
-                (pos) => { db.ref(`${DB_ROOT}/gps_tracking/${veiculoDoRomaneio}`).set({ lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: Date.now(), status: 'online', motorista: currentDriverName }); },
+                (pos) => { 
+                    const mLat = pos.coords.latitude;
+                    const mLng = pos.coords.longitude;
+                    db.ref(`${DB_ROOT}/gps_tracking/${veiculoDoRomaneio}`).set({ lat: mLat, lng: mLng, timestamp: Date.now(), status: 'online', motorista: currentDriverName }); 
+                    
+                    // ATUALIZAR O MAPA DO MOTORISTA EM TEMPO REAL (EFEITO WAZE)
+                    if (mapMotoristaObj && window.google) {
+                        const driverPos = new google.maps.LatLng(mLat, mLng);
+                        if (!driverMarkerMap) {
+                            driverMarkerMap = new google.maps.Marker({
+                                position: driverPos,
+                                map: mapMotoristaObj,
+                                icon: "https://maps.google.com/mapfiles/ms/icons/truck.png",
+                                zIndex: 999
+                            });
+                        } else {
+                            driverMarkerMap.setPosition(driverPos);
+                        }
+                        mapMotoristaObj.panTo(driverPos);
+                        if (mapMotoristaObj.getZoom() < 14) mapMotoristaObj.setZoom(16);
+                    }
+                },
                 (err) => { alert("Por favor, AUTORIZE o site a acessar a sua Localização (GPS) nas permissões do seu celular."); window.desligarGPS(); },
                 { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
             );
